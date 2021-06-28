@@ -10,6 +10,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     const fsReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.formatJsonSelection', formatJsonSelection);
     context.subscriptions.push(fsReg);
+
+    const minReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.minifyJsonDocument', minifyJsonDocument);
+    context.subscriptions.push(minReg);
+
+    const nearReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.nearMinifyJsonDocument', nearMinifyJsonDocument);
+    context.subscriptions.push(nearReg);
 }
 
 /**
@@ -73,6 +79,58 @@ function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEdi
         const newText = formatter.Serialize(obj).substring(leadingWs.length);
 
         edit.replace(trimmedSel, newText);
+    }
+    catch (err) {
+        console.log(err);
+        vscode.window.showErrorMessage(err.message);
+    }
+}
+
+/**
+ * Attempts to format the whole document as minified JSON.
+ * @param textEditor
+ * @param edit
+ */
+function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
+    try {
+        const oldText = textEditor.document.getText();
+        const obj = JSON.parse(oldText);
+
+        const newText = JSON.stringify(obj);
+
+        edit.replace(new vscode.Range(0,0,textEditor.document.lineCount+1,0), newText);
+    }
+    catch (err) {
+        console.log(err);
+        vscode.window.showErrorMessage(err.message);
+    }
+}
+
+/**
+ * Attempts to format the whole doument as nearly-minified JSON.  Children of the root element begin on their
+ * line, but are themselves minified.  The gives you a still compact file, but the the user can easily select
+ * a subelement and possibly expand it with Format Selection.
+ * @param textEditor
+ * @param edit
+ */
+function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
+    try {
+        const oldText = textEditor.document.getText();
+        const obj = JSON.parse(oldText);
+        const formatter = formatterWithOptions(textEditor);
+        formatter.MaxInlineLength = 1000000000;
+        formatter.MaxInlineComplexity = 1000000000;
+        formatter.MaxCompactArrayComplexity = 1000000000;
+        formatter.AlwaysExpandDepth = 0;
+        formatter.NestedBracketPadding = false;
+        formatter.ColonPadding = false;
+        formatter.CommaPadding = false;
+        formatter.JustifyNumberLists = false;
+        formatter.IndentString = "";
+
+        const newText = formatter.Serialize(obj);
+
+        edit.replace(new vscode.Range(0,0,textEditor.document.lineCount+1,0), newText);
     }
     catch (err) {
         console.log(err);

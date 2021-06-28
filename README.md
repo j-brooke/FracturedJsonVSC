@@ -1,70 +1,63 @@
-# fracturedjsonvsc README
+# FracturedJson for Visual Studio Code
 
-This is the README for your extension "fracturedjsonvsc". After writing up a brief description, we recommend including the following sections.
+A JSON formatter that produces human-readable but fairly compact output.
+
+* Arrays and objects are written on single lines, if their contents aren't too complex and the resulting line wouldn't be too long.
+* Arrays can be written on multiple lines, with multiple items per line, as long as those items aren't too complex.
+* Otherwise, each object property or array item is written begining on its own line, indented one step deeper than its parent.
+
+This VSCode extension is part of a family of FracturedJson tools.  Check out the [browser-based formatter](https://j-brooke.github.io/FracturedJson/) to see other options and to play around with the various options.
+
+There are lots of options, but this is an example of what you get:
+
+```
+{
+    "AttackPlans": [
+        {
+            "TeamId": 1,
+            "Spawns": [
+                {"Time": 0.0, "UnitType": "Grunt", "SpawnPointIndex": 0},
+                {"Time": 0.0, "UnitType": "Grunt", "SpawnPointIndex": 0},
+                {"Time": 0.0, "UnitType": "Grunt", "SpawnPointIndex": 0}
+            ]
+        }
+    ],
+    "DefensePlans": [
+        {
+            "TeamId": 2,
+            "Placements": [
+                { "UnitType": "Archer", "Position": [41, 7] },
+                { "UnitType": "Pikeman", "Position": [40, 7] },
+                { "UnitType": "Barricade", "Position": [39, 7] }
+            ]
+        }
+    ]
+}
+```
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+This extension provides 4 commands:
 
-For example if there is an image subfolder under your extension project workspace:
+* **Format JSON Document** - The whole document is reformatted according to the settings.
+* **Format JSON Selection** - Just the current selection is reformatted in-place.  The selection must be a single JSON element.
+* **Minify JSON Document** - Reformats the whole document as small as possible (just like JavaScript's `JSON.stringify`).
+* **Near-minify JSON Document** - Formats the document with each child of the root element minified, but on its own line.  (For documents whose roots are arrays with many elements, this provides compact storage but allows a user to easily select a single child of the root.)
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+You can access these from the Command Palette (shift-command-P or select it from the View menu).  You can set keybindings by clicking on the gear symbol in command palette.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+You can tune the formatting behavior with the properties in Settings -> Extensions -> FracturedJson.  The most important settings are:
 
-For example:
+* **Max Inline Length:** Maximum length (not counting indentation) of a complex element on a single line.
+* **Max Inline Complexity:** Maximum nesting level that can be displayed on a single line.
+* **Max Compact Array Complexity:** Maximum nesting level that can be arranged spanning multiple lines, with multiple items per line.
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Examples of all of the settings can be found on the [Options wiki page](https://github.com/j-brooke/FracturedJson/wiki/Options).  You can also experiment with the same functionality on the [browser-based formatter](https://j-brooke.github.io/FracturedJson/) page.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial release

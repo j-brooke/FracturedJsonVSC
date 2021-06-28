@@ -1,6 +1,6 @@
 {
     "name": "fracturedjsonvsc",
-    "displayName": "FracturedJsonVSC",
+    "displayName": "FracturedJson",
     "description": "Formats JSON in a compact but human-readable way.",
     "version": "0.0.1",
     "engines": {
@@ -11,7 +11,9 @@
     ],
     "activationEvents": [
         "onCommand:fracturedjsonvsc.formatJsonDocument",
-        "onCommand:fracturedjsonvsc.formatJsonSelection"
+        "onCommand:fracturedjsonvsc.formatJsonSelection",
+        "onCommand:fracturedjsonvsc.minifyJsonDocument",
+        "onCommand:fracturedjsonvsc.nearMinifyJsonDocument"
     ],
     "main": "./out/extension.js",
     "contributes": {
@@ -23,10 +25,18 @@
             {
                 "command": "fracturedjsonvsc.formatJsonSelection",
                 "title": "Format JSON Selection"
+            },
+            {
+                "command": "fracturedjsonvsc.minifyJsonDocument",
+                "title": "Minify JSON Document"
+            },
+            {
+                "command": "fracturedjsonvsc.nearMinifyJsonDocument",
+                "title": "Near-minify JSON Document"
             }
         ],
         "configuration": {
-            "title": "FracturedJsonVSC",
+            "title": "FracturedJson",
             "properties": {
                 "fracturedjsonvsc.MaxInlineLength": {
                     "type": "number",
