@@ -6,46 +6,41 @@ A JSON formatter that produces human-readable but fairly compact output.
 * Arrays can be written on multiple lines, with multiple items per line, as long as those items aren't too complex.
 * Otherwise, each object property or array item is written begining on its own line, indented one step deeper than its parent.
 
-This VSCode extension is part of a family of FracturedJson tools.  Check out the [browser-based formatter](https://j-brooke.github.io/FracturedJson/) to see other options and to play around with the various options.
+This VSCode extension is part of a family of FracturedJson tools.  Check out the [browser-based formatter](https://j-brooke.github.io/FracturedJson/) to see related projects and to play around with the various formatting options.
 
-There are lots of options, but this is an example of what you get:
 
-```
-{
-    "AttackPlans": [
-        {
-            "TeamId": 1,
-            "Spawns": [
-                {"Time": 0.0, "UnitType": "Grunt", "SpawnPointIndex": 0},
-                {"Time": 0.0, "UnitType": "Grunt", "SpawnPointIndex": 0},
-                {"Time": 0.0, "UnitType": "Grunt", "SpawnPointIndex": 0}
-            ]
-        }
-    ],
-    "DefensePlans": [
-        {
-            "TeamId": 2,
-            "Placements": [
-                { "UnitType": "Archer", "Position": [41, 7] },
-                { "UnitType": "Pikeman", "Position": [40, 7] },
-                { "UnitType": "Barricade", "Position": [39, 7] }
-            ]
-        }
-    ]
-}
-```
-
+---
 ## Features
 
-This extension provides 4 commands:
+This extension provides the following 4 commands.  You can access these from the Command Palette (shift-command-P or select it from the View menu).  You can set keybindings by clicking on the gear symbol in command palette.
 
-* **Format JSON Document** - The whole document is reformatted according to the settings.
-* **Format JSON Selection** - Just the current selection is reformatted in-place.  The selection must be a single JSON element.
-* **Minify JSON Document** - Reformats the whole document as small as possible (just like JavaScript's `JSON.stringify`).
-* **Near-minify JSON Document** - Formats the document with each child of the root element minified, but on its own line.  (For documents whose roots are arrays with many elements, this provides compact storage but allows a user to easily select a single child of the root.)
+### Format JSON Document
 
-You can access these from the Command Palette (shift-command-P or select it from the View menu).  You can set keybindings by clicking on the gear symbol in command palette.
+The **Format JSON Document** command reformats the entire document, inlining arrays and objects up to a certain degree of complexity and length, and then expanding the rest of the rest.  You can adjust the behavior with the extension's settings.
 
+![Format JSON Document](images/Format-JSON-Document.gif)
+
+
+### Format JSON Selection
+
+You can use the **Format JSON Selection** command to reformat just a piece of the document, if desired.
+
+![Format JSON Selection](images/Format-JSON-Selection.gif)
+
+
+### Minify JSON Document
+
+**Minify JSON Document** reformats the document as small as possible, just like every other minification tool out there.  (It's the same as JavaScript's `JSON.stringify` with no extra options.)
+
+
+### Near-minify JSON Document
+
+If your document's root element is an array with many children, it might be useful to use **Near-minify JSON Document**.  This will produce a document where each of the root element's children are separated by newlines, but otherwise minified.  This saves space but still allows you to pick out individual items (which you might then choose to expand with **Format JSON Selection** for instance).
+
+![Near-minify JSON Document](images/Format-From-Near-Min.gif)
+
+
+---
 ## Extension Settings
 
 You can tune the formatting behavior with the properties in Settings -> Extensions -> FracturedJson.  The most important settings are:
@@ -54,8 +49,12 @@ You can tune the formatting behavior with the properties in Settings -> Extensio
 * **Max Inline Complexity:** Maximum nesting level that can be displayed on a single line.
 * **Max Compact Array Complexity:** Maximum nesting level that can be arranged spanning multiple lines, with multiple items per line.
 
+Indentation is controlled by the editor's standard settings (`editor.insertSpaces`, `editor.tabSize`, `editor.detectIndentation`, etc.).
+
 Examples of all of the settings can be found on the [Options wiki page](https://github.com/j-brooke/FracturedJson/wiki/Options).  You can also experiment with the same functionality on the [browser-based formatter](https://j-brooke.github.io/FracturedJson/) page.
 
+
+---
 ## Release Notes
 
 ### 1.0.0

@@ -1,14 +1,28 @@
 {
     "name": "fracturedjsonvsc",
     "displayName": "FracturedJson",
-    "description": "Formats JSON in a compact but human-readable way.",
+    "description": "A JSON formatter that produces human-readable but fairly compact output.",
+    "publisher": "j-brooke",
     "version": "0.0.1",
     "engines": {
         "vscode": "^1.57.0"
     },
     "categories": [
-        "Other"
+        "Formatters"
     ],
+    "keywords": [
+        "JSON",
+        "formatter",
+        "pretty printer",
+        "beautifier",
+        "stringify"
+    ],
+    "repository": {
+        "url": "https://github.com/j-brooke/FracturedJsonVSC"
+    },
+    "homepage": "https://j-brooke.github.io/FracturedJson/",
+    "license": "MIT",
+    "icon": "images/logo_256.png",
     "activationEvents": [
         "onCommand:fracturedjsonvsc.formatJsonDocument",
         "onCommand:fracturedjsonvsc.formatJsonSelection",
