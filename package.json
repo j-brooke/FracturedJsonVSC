@@ -3,7 +3,7 @@
     "displayName": "FracturedJson",
     "description": "A JSON formatter that produces human-readable but fairly compact output.",
     "publisher": "j-brooke",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "engines": {
         "vscode": "^1.57.0"
     },
@@ -55,42 +55,62 @@
                 "fracturedjsonvsc.MaxInlineLength": {
                     "type": "number",
                     "default": 80,
-                    "description": "Maximum length of complex inline elements, not counting indentation"
+                    "description": "Maximum length of complex inline elements, not counting indentation."
                 },
                 "fracturedjsonvsc.MaxInlineComplexity": {
                     "type": "number",
                     "default": 2,
-                    "description": "Maximum complexity for inline elements"
+                    "description": "Maximum complexity for inline elements."
                 },
                 "fracturedjsonvsc.MaxCompactArrayComplexity": {
                     "type": "number",
                     "default": 1,
-                    "description": "Maximum complexity for compact multiline arrays"
+                    "description": "Maximum complexity for compact multiline arrays."
                 },
                 "fracturedjsonvsc.NestedBracketPadding": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Insert spaces inside brackets for complex inlined types"
+                    "description": "Insert spaces inside brackets for complex inlined types."
                 },
                 "fracturedjsonvsc.ColonPadding": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Insert spaces after colons"
+                    "description": "Insert spaces after colons."
                 },
                 "fracturedjsonvsc.CommaPadding": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Insert spaces after commas"
+                    "description": "Insert spaces after commas."
                 },
                 "fracturedjsonvsc.JustifyNumberLists": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Right-align and pad lists of only numbers"
+                    "description": "Right-align and pad lists of only numbers."
                 },
                 "fracturedjsonvsc.AlwaysExpandDepth": {
                     "type": "number",
                     "default": -1,
-                    "description": "Depth at which lists/objects are always expanded regardless of other settings"
+                    "description": "Depth at which lists/objects are always expanded regardless of other settings."
+                },
+                "fracturedjsonvsc.TableObjectMinimumSimilarity": {
+                    "type": "number",
+                    "default": 75,
+                    "description": "Value from 0 to 100 indicating how similar collections of inline objects need to be to be formatted as a table.  Setting this to a value >100 disables table formatting with objects as rows."
+                },
+                "fracturedjsonvsc.TableArrayMinimumSimilarity": {
+                    "type": "number",
+                    "default": 75,
+                    "description": "Value from 0 to 100 indicating how similar collections of inline arrays need to be to be formatted as a table.  Setting this to a value >100 disables table formatting with arrays as rows."
+                },
+                "fracturedjsonvsc.AlignExpandedPropertyNames": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, property names of expanded objects are padded to the same size."
+                },
+                "fracturedjsonvsc.DontJustifyNumbers": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, numbers won't be right-aligned with matching precision."
                 }
             }
         }
@@ -117,6 +137,6 @@
         "vscode-test": "^1.5.2"
     },
     "dependencies": {
-        "fracturedjsonjs": "^1.2.1"
+        "fracturedjsonjs": "^2.0.0"
     }
 }

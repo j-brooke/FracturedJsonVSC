@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-const FracturedJson = require('fracturedjsonjs');
+import { Formatter } from 'fracturedjsonjs';
+import { start } from 'repl';
 
 /**
  * Called by VSCode when the extension is first used.
@@ -35,9 +36,10 @@ export function deactivate() {}
         const obj = JSON.parse(oldText);
         const formatter = formatterWithOptions(textEditor);
 
-        const newText = formatter.Serialize(obj);
+        const newText = formatter.serialize(obj);
 
-        edit.replace(new vscode.Range(0,0,textEditor.document.lineCount+1,0), newText);
+        edit.delete(new vscode.Range(0,0,textEditor.document.lineCount+1,0));
+        edit.insert(new vscode.Position(0,0), newText);
     }
     catch (err) {
         console.log(err);
@@ -73,10 +75,10 @@ function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEdi
         const leadingWs = textEditor.document.getText(leadingWsRange);
 
         const formatter = formatterWithOptions(textEditor);
-        formatter.PrefixString = leadingWs;
+        formatter.prefixString = leadingWs;
 
         // The formatted text includes the prefix string on all lines, but we don't want it on the first.
-        const newText = formatter.Serialize(obj).substring(leadingWs.length);
+        const newText = formatter.serialize(obj).substring(leadingWs.length);
 
         edit.replace(trimmedSel, newText);
     }
@@ -98,7 +100,8 @@ function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
 
         const newText = JSON.stringify(obj);
 
-        edit.replace(new vscode.Range(0,0,textEditor.document.lineCount+1,0), newText);
+        edit.delete(new vscode.Range(0,0,textEditor.document.lineCount+1,0));
+        edit.insert(new vscode.Position(0,0), newText);
     }
     catch (err) {
         console.log(err);
@@ -118,19 +121,22 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
         const oldText = textEditor.document.getText();
         const obj = JSON.parse(oldText);
         const formatter = formatterWithOptions(textEditor);
-        formatter.MaxInlineLength = 1000000000;
-        formatter.MaxInlineComplexity = 1000000000;
-        formatter.MaxCompactArrayComplexity = 1000000000;
-        formatter.AlwaysExpandDepth = 0;
-        formatter.NestedBracketPadding = false;
-        formatter.ColonPadding = false;
-        formatter.CommaPadding = false;
-        formatter.JustifyNumberLists = false;
-        formatter.IndentString = "";
+        formatter.maxInlineLength = 1000000000;
+        formatter.maxInlineComplexity = 1000000000;
+        formatter.maxCompactArrayComplexity = 1000000000;
+        formatter.alwaysExpandDepth = 0;
+        formatter.nestedBracketPadding = false;
+        formatter.colonPadding = false;
+        formatter.commaPadding = false;
+        formatter.indentSpaces = 0;
+        formatter.useTabToIndent = false;
+        formatter.tableArrayMinimumSimilarity = 101;
+        formatter.tableObjectMinimumSimilarity = 101;
 
-        const newText = formatter.Serialize(obj);
+        const newText = formatter.serialize(obj);
 
-        edit.replace(new vscode.Range(0,0,textEditor.document.lineCount+1,0), newText);
+        edit.delete(new vscode.Range(0,0,textEditor.document.lineCount+1,0));
+        edit.insert(new vscode.Position(0,0), newText);
     }
     catch (err) {
         console.log(err);
@@ -220,23 +226,25 @@ function positionAfter(textEditor: vscode.TextEditor, position: vscode.Position)
  * @returns A configured FracturedJson object
  */
 function formatterWithOptions(textEditor: vscode.TextEditor) {
-    const formatter = new FracturedJson();
+    const formatter = new Formatter();
 
     // These settings come straight from our plugin's options.
     const config = vscode.workspace.getConfiguration('fracturedjsonvsc');
-    formatter.MaxInlineComplexity = config.MaxInlineComplexity;
-    formatter.MaxInlineLength = config.MaxInlineLength;
-    formatter.MaxCompactArrayComplexity = config.MaxCompactArrayComplexity;
-    formatter.NestedBracketPadding = config.NestedBracketPadding;
-    formatter.ColonPadding = config.ColonPadding;
-    formatter.CommaPadding = config.CommaPadding;
-    formatter.JustifyNumberLists = config.JustifyNumberLists;
-    formatter.AlwaysExpandDepth = config.AlwaysExpandDepth;
+    formatter.maxInlineComplexity = config.MaxInlineComplexity;
+    formatter.maxInlineLength = config.MaxInlineLength;
+    formatter.maxCompactArrayComplexity = config.MaxCompactArrayComplexity;
+    formatter.nestedBracketPadding = config.NestedBracketPadding;
+    formatter.colonPadding = config.ColonPadding;
+    formatter.commaPadding = config.CommaPadding;
+    formatter.alwaysExpandDepth = config.AlwaysExpandDepth;
+    formatter.tableObjectMinimumSimilarity = config.TableObjectMinimumSimilarity;
+    formatter.tableArrayMinimumSimilarity = config.TableArrayMinimumSimilarity;
+    formatter.alignExpandedPropertyNames = config.AlignExpandedPropertyNames;
+    formatter.dontJustifyNumbers = config.DontJustifyNumbers;
 
     // Use the editor's built-in mechanisms for tabs/spaces.
-    formatter.IndentString = textEditor.options.insertSpaces?
-        ' '.repeat(Number(textEditor.options.tabSize))
-        : '\t';
+    formatter.indentSpaces = Number(textEditor.options.tabSize);
+    formatter.useTabToIndent = !textEditor.options.insertSpaces;
 
     return formatter;
 }

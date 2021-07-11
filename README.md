@@ -5,6 +5,7 @@ A JSON formatter that produces human-readable but fairly compact output.
 * Arrays and objects are written on single lines, if their contents aren't too complex and the resulting line wouldn't be too long.
 * Arrays can be written on multiple lines, with multiple items per line, as long as those items aren't too complex.
 * Otherwise, each object property or array item is written begining on its own line, indented one step deeper than its parent.
+* If several successive inline arrays or objects are similar enough, they will be formatted as a table.
 
 This VSCode extension is part of a family of FracturedJson tools.  Check out the [browser-based formatter](https://j-brooke.github.io/FracturedJson/) to see related projects and to play around with the various formatting options.
 
@@ -45,9 +46,9 @@ If your document's root element is an array with many children, it might be usef
 
 You can tune the formatting behavior with the properties in Settings -> Extensions -> FracturedJson.  The most important settings are:
 
-* **Max Inline Length:** Maximum length (not counting indentation) of a complex element on a single line.
-* **Max Inline Complexity:** Maximum nesting level that can be displayed on a single line.
-* **Max Compact Array Complexity:** Maximum nesting level that can be arranged spanning multiple lines, with multiple items per line.
+* `Max Inline Length`: Maximum length (not counting indentation) of a complex element on a single line.
+* `Max Inline Complexity`: Maximum nesting level that can be displayed on a single line.
+* `Max Compact Array Complexity`: Maximum nesting level that can be arranged spanning multiple lines, with multiple items per line.
 
 Indentation is controlled by the editor's standard settings (`editor.insertSpaces`, `editor.tabSize`, `editor.detectIndentation`, etc.).
 
@@ -56,6 +57,12 @@ Examples of all of the settings can be found on the [Options wiki page](https://
 
 ---
 ## Release Notes
+
+### 2.0.0
+
+FracturedJson now tries to format collections of inline arrays/objects in a tabular arrangement if it seems to make sense.  Two new settings - `Table Object Minimum Similarity` and `Table Array Minimum Similarity` - control how similar the inlined elements need to be to their siblings to qualify.  (Other settings, like `Max Inline Length` also factor in.)
+
+In tables, and in arrays of just numbers, numbers are usually written right-aligned and with the same precision.  You can disable this behavior with the setting `Don't Justify Numbers`.
 
 ### 1.0.0
 
