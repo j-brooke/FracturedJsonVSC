@@ -137,6 +137,7 @@
         "vscode-test": "^1.5.2"
     },
     "dependencies": {
-        "fracturedjsonjs": "^2.0.0"
+        "fracturedjsonjs": "^2.0.0",
+        "vsce": "^1.95.1"
     }
 }

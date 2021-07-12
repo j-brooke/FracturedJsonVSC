@@ -21,12 +21,12 @@ The **Format JSON Document** command reformats the entire document, inlining arr
 
 ![Format JSON Document](images/Format-JSON-Document.gif)
 
+![Format JSON Document 2](images/Format-JSON-Document-2.gif)
+
 
 ### Format JSON Selection
 
-You can use the **Format JSON Selection** command to reformat just a piece of the document, if desired.
-
-![Format JSON Selection](images/Format-JSON-Selection.gif)
+You can use the **Format JSON Selection** command to reformat just a piece of the document, if desired.  The selection must be a well-formed JSON element on its own (although leading and trailing whitespace and commas are skipped).
 
 
 ### Minify JSON Document
@@ -38,7 +38,7 @@ You can use the **Format JSON Selection** command to reformat just a piece of th
 
 If your document's root element is an array with many children, it might be useful to use **Near-minify JSON Document**.  This will produce a document where each of the root element's children are separated by newlines, but otherwise minified.  This saves space but still allows you to pick out individual items (which you might then choose to expand with **Format JSON Selection** for instance).
 
-![Near-minify JSON Document](images/Format-From-Near-Min.gif)
+![Near-minify JSON Document](images/Near-minify-JSON-Document.gif)
 
 
 ---
