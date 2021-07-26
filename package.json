@@ -27,10 +27,22 @@
         "onCommand:fracturedjsonvsc.formatJsonDocument",
         "onCommand:fracturedjsonvsc.formatJsonSelection",
         "onCommand:fracturedjsonvsc.minifyJsonDocument",
-        "onCommand:fracturedjsonvsc.nearMinifyJsonDocument"
+        "onCommand:fracturedjsonvsc.nearMinifyJsonDocument",
+        "onLanguage:json"
     ],
     "main": "./out/extension.js",
     "contributes": {
+        "languages": [
+            {
+                "id": "json",
+                "aliases": [
+                    "JSON"
+                ],
+                "extensions": [
+                    ".json"
+                ]
+            }
+        ],
         "commands": [
             {
                 "command": "fracturedjsonvsc.formatJsonDocument",
@@ -137,7 +149,7 @@
         "vscode-test": "^1.5.2"
     },
     "dependencies": {
-        "fracturedjsonjs": "^2.0.0",
+        "fracturedjsonjs": "^2.0.1",
         "vsce": "^1.95.1"
     }
 }
