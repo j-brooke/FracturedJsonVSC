@@ -87,7 +87,7 @@ FracturedJson's **Format JSON Selection** feature basically only works if the se
 
 ## Release Notes
 
-### 2.2.0
+### 2.2.1
 
 * New setting `String Width Policy` determines how many spaces are used as padding to line up columns when formatted as a table.
     * Option `EastAsianFullWidth` (default) uses two spaces for East Asian "fullwidth" symbols, and one space for others.
