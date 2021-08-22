@@ -87,6 +87,14 @@ FracturedJson's **Format JSON Selection** feature basically only works if the se
 
 ## Release Notes
 
+### 2.2.0
+
+* New setting `String Width Policy` determines how many spaces are used as padding to line up columns when formatted as a table.
+    * Option `EastAsianFullWidth` (default) uses two spaces for East Asian "fullwidth" symbols, and one space for others.
+    * Option `CharacterCount` treats each character as having the width of one space.
+* New setting `Simple Bracket Padding` controls whether brackets should have spaces inside when they contain only simple elements.  (The old setting `Nested Bracket Padding` is used when they contain other arrays/objects.)
+
+
 ### 2.1.0
 
 * Hooked into VSCode's formatter API, allowing FracturedJson to be used as a default formatter.  That allows for such features as format-on-save, format-on-paste, etc.

@@ -241,6 +241,7 @@ function formatterWithOptions(options: vscode.TextEditorOptions) {
     formatter.maxInlineLength = config.MaxInlineLength;
     formatter.maxCompactArrayComplexity = config.MaxCompactArrayComplexity;
     formatter.nestedBracketPadding = config.NestedBracketPadding;
+    formatter.simpleBracketPadding = config.SimpleBracketPadding;
     formatter.colonPadding = config.ColonPadding;
     formatter.commaPadding = config.CommaPadding;
     formatter.alwaysExpandDepth = config.AlwaysExpandDepth;
@@ -248,6 +249,18 @@ function formatterWithOptions(options: vscode.TextEditorOptions) {
     formatter.tableArrayMinimumSimilarity = config.TableArrayMinimumSimilarity;
     formatter.alignExpandedPropertyNames = config.AlignExpandedPropertyNames;
     formatter.dontJustifyNumbers = config.DontJustifyNumbers;
+
+    switch (config.StringWidthPolicy) {
+        case "CharacterCount": {
+            formatter.stringWidthFunc = Formatter.StringWidthByCharacterCount;
+            break;
+        }
+        case "EastAsianFullWidth":
+        default: {
+            formatter.stringWidthFunc = Formatter.StringWidthWithEastAsian;
+            break;
+        }
+    }
 
     // Use the editor's built-in mechanisms for tabs/spaces.
     formatter.indentSpaces = Number(options.tabSize);

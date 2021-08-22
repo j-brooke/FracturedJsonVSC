@@ -3,7 +3,7 @@
     "displayName": "FracturedJson",
     "description": "A JSON formatter that produces human-readable but fairly compact output.",
     "publisher": "j-brooke",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "engines": {
         "vscode": "^1.57.0"
     },
@@ -84,6 +84,11 @@
                     "default": true,
                     "description": "Insert spaces inside brackets for complex inlined types."
                 },
+                "fracturedjsonvsc.SimpleBracketPadding": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Insert spaces inside brackets for un-nested inlined types."
+                },
                 "fracturedjsonvsc.ColonPadding": {
                     "type": "boolean",
                     "default": true,
@@ -123,6 +128,19 @@
                     "type": "boolean",
                     "default": false,
                     "description": "If true, numbers won't be right-aligned with matching precision."
+                },
+                "fracturedjsonvsc.StringWidthPolicy": {
+                    "type": "string",
+                    "default": "EastAsianFullWidth",
+                    "description": "Determines how many spaces are added when aligning things as tables.",
+                    "enum": [
+                        "CharacterCount",
+                        "EastAsianFullWidth"
+                    ],
+                    "enumDescriptions": [
+                        "Aligns tables based on simple character counts.",
+                        "Aligns tables adjusting for unicode FullWidth characters."
+                    ]
                 }
             }
         }
@@ -154,7 +172,7 @@
         "vscode-test": "^1.5.2"
     },
     "dependencies": {
-        "fracturedjsonjs": "^2.0.1",
+        "fracturedjsonjs": "^2.2.0",
         "vsce": "^1.95.1"
     }
 }
