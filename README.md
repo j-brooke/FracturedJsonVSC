@@ -87,6 +87,11 @@ FracturedJson's **Format JSON Selection** feature basically only works if the se
 
 ## Release Notes
 
+### 2.2.2
+
+Updated `npm` packages to address security concern.
+
+
 ### 2.2.1
 
 * New setting `String Width Policy` determines how many spaces are used as padding to line up columns when formatted as a table.
