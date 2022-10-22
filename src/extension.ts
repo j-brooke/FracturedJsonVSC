@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
-import { Formatter } from 'fracturedjsonjs';
+import {CommentPolicy, Formatter} from 'fracturedjsonjs';
+
+// @ts-ignore
+import * as eaw from 'eastasianwidth';
 
 /**
  * Called by VSCode when the extension is first used.
@@ -39,13 +42,13 @@ function formatJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
         const obj = JSON.parse(oldText);
         const formatter = formatterWithOptions(textEditor.options);
 
-        const newText = formatter.serialize(obj);
+        const newText = formatter.Serialize(obj) ?? "";
 
         // Delete the whole old doc and then insert the new one.  This avoids weird selection issues.
         edit.delete(new vscode.Range(0, 0, textEditor.document.lineCount + 1, 0));
         edit.insert(new vscode.Position(0, 0), newText);
     }
-    catch (err) {
+    catch (err: any) {
         vscode.window.showErrorMessage('FracturedJson: ' + err.message);
         const pos = getPostionFromError(err, textEditor.document);
         if (pos) {
@@ -82,14 +85,15 @@ function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEdi
         const leadingWs = textEditor.document.getText(leadingWsRange);
 
         const formatter = formatterWithOptions(textEditor.options);
-        formatter.prefixString = leadingWs;
+        formatter.Options.PrefixString = leadingWs;
 
         // The formatted text includes the prefix string on all lines, but we don't want it on the first.
-        const newText = formatter.serialize(obj).substring(leadingWs.length);
+        const formattedText = formatter.Serialize(obj) ?? "";
+        const newText = formattedText.substring(leadingWs.length);
 
         edit.replace(trimmedSel, newText);
     }
-    catch (err) {
+    catch (err: any) {
         vscode.window.showErrorMessage('FracturedJson: ' + err.message);
     }
 }
@@ -109,7 +113,7 @@ function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
         edit.delete(new vscode.Range(0, 0, textEditor.document.lineCount + 1, 0));
         edit.insert(new vscode.Position(0, 0), newText);
     }
-    catch (err) {
+    catch (err: any) {
         vscode.window.showErrorMessage('FracturedJson: ' + err.message);
         const pos = getPostionFromError(err, textEditor.document);
         if (pos) {
@@ -130,24 +134,24 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
         const oldText = textEditor.document.getText();
         const obj = JSON.parse(oldText);
         const formatter = formatterWithOptions(textEditor.options);
-        formatter.maxInlineLength = 1000000000;
-        formatter.maxInlineComplexity = 1000000000;
-        formatter.maxCompactArrayComplexity = 1000000000;
-        formatter.alwaysExpandDepth = 0;
-        formatter.nestedBracketPadding = false;
-        formatter.colonPadding = false;
-        formatter.commaPadding = false;
-        formatter.indentSpaces = 0;
-        formatter.useTabToIndent = false;
-        formatter.tableArrayMinimumSimilarity = 101;
-        formatter.tableObjectMinimumSimilarity = 101;
+        formatter.Options.MaxInlineLength = Number.MAX_VALUE;
+        formatter.Options.MaxTotalLineLength = Number.MAX_VALUE;
+        formatter.Options.MaxInlineComplexity = Number.MAX_VALUE;
+        formatter.Options.AlwaysExpandDepth = 0;
+        formatter.Options.IndentSpaces = 0;
+        formatter.Options.UseTabToIndent = false;
+        formatter.Options.CommaPadding = false;
+        formatter.Options.ColonPadding = false;
+        formatter.Options.SimpleBracketPadding = false;
+        formatter.Options.NestedBracketPadding = false;
+        formatter.Options.CommentPadding = false;
 
-        const newText = formatter.serialize(obj);
+        const newText = formatter.Serialize(obj) ?? "";
 
         edit.delete(new vscode.Range(0, 0, textEditor.document.lineCount + 1, 0));
         edit.insert(new vscode.Position(0, 0), newText);
     }
-    catch (err) {
+    catch (err: any) {
         vscode.window.showErrorMessage('FracturedJson: ' + err.message);
         const pos = getPostionFromError(err, textEditor.document);
         if (pos) {
@@ -182,10 +186,11 @@ function provideRangeEdits(document: vscode.TextDocument, range: vscode.Range,
     const leadingWs = document.getText(leadingWsRange);
 
     const formatter = formatterWithOptions(options);
-    formatter.prefixString = leadingWs;
+    formatter.Options.PrefixString = leadingWs;
 
     // The formatted text includes the prefix string on all lines, but we don't want it on the first.
-    const newText = formatter.serialize(obj).substring(leadingWs.length);
+    const formattedText = formatter.Serialize(obj) ?? "";
+    const newText = formattedText.substring(leadingWs.length);
 
     return [vscode.TextEdit.replace(trimmedSel, newText)];
 }
@@ -237,34 +242,34 @@ function formatterWithOptions(options: vscode.TextEditorOptions) {
 
     // These settings come straight from our plugin's options.
     const config = vscode.workspace.getConfiguration('fracturedjsonvsc');
-    formatter.maxInlineComplexity = config.MaxInlineComplexity;
-    formatter.maxInlineLength = config.MaxInlineLength;
-    formatter.maxCompactArrayComplexity = config.MaxCompactArrayComplexity;
-    formatter.nestedBracketPadding = config.NestedBracketPadding;
-    formatter.simpleBracketPadding = config.SimpleBracketPadding;
-    formatter.colonPadding = config.ColonPadding;
-    formatter.commaPadding = config.CommaPadding;
-    formatter.alwaysExpandDepth = config.AlwaysExpandDepth;
-    formatter.tableObjectMinimumSimilarity = config.TableObjectMinimumSimilarity;
-    formatter.tableArrayMinimumSimilarity = config.TableArrayMinimumSimilarity;
-    formatter.alignExpandedPropertyNames = config.AlignExpandedPropertyNames;
-    formatter.dontJustifyNumbers = config.DontJustifyNumbers;
+    formatter.Options.MaxInlineComplexity = config.MaxInlineComplexity;
+    formatter.Options.MaxInlineLength = config.MaxInlineLength;
+    formatter.Options.MaxCompactArrayComplexity = config.MaxCompactArrayComplexity;
+    formatter.Options.NestedBracketPadding = config.NestedBracketPadding;
+    formatter.Options.SimpleBracketPadding = config.SimpleBracketPadding;
+    formatter.Options.ColonPadding = config.ColonPadding;
+    formatter.Options.CommaPadding = config.CommaPadding;
+    formatter.Options.AlwaysExpandDepth = config.AlwaysExpandDepth;
+    formatter.Options.DontJustifyNumbers = config.DontJustifyNumbers;
+
+    // FIXME
+    formatter.Options.CommentPolicy = CommentPolicy.Preserve;
 
     switch (config.StringWidthPolicy) {
         case "CharacterCount": {
-            formatter.stringWidthFunc = Formatter.StringWidthByCharacterCount;
+            formatter.StringLengthFunc = Formatter.StringLengthByCharCount;
             break;
         }
         case "EastAsianFullWidth":
         default: {
-            formatter.stringWidthFunc = Formatter.StringWidthWithEastAsian;
+            formatter.StringLengthFunc = WideCharStringLength;
             break;
         }
     }
 
     // Use the editor's built-in mechanisms for tabs/spaces.
-    formatter.indentSpaces = Number(options.tabSize);
-    formatter.useTabToIndent = !options.insertSpaces;
+    formatter.Options.IndentSpaces = Number(options.tabSize);
+    formatter.Options.UseTabToIndent = !options.insertSpaces;
 
     return formatter;
 }
@@ -287,6 +292,10 @@ function getPostionFromError(err: Error, document: vscode.TextDocument): vscode.
 
     const offset = Number(errMatch[1]);
     return document.positionAt(offset);
+}
+
+function WideCharStringLength(str: string): number {
+    return eaw.length(str);
 }
 
 const errorRegex = /at position (\d*)/;
