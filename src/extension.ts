@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(nearReg);
 
     // Register with the official formatting API.
-    vscode.languages.registerDocumentRangeFormattingEditProvider('json', { provideDocumentRangeFormattingEdits: provideRangeEdits });
+    vscode.languages.registerDocumentRangeFormattingEditProvider(['json', 'jsonc'], { provideDocumentRangeFormattingEdits: provideRangeEdits });
 }
 
 /**
@@ -39,10 +39,12 @@ export function deactivate() { }
 function formatJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
     try {
         const oldText = textEditor.document.getText();
-        const obj = JSON.parse(oldText);
         const formatter = formatterWithOptions(textEditor.options);
 
-        const newText = formatter.Serialize(obj) ?? "";
+        let newText = formatter.Reformat(oldText) ?? "";
+        if (newText.endsWith('\n')){
+            newText = newText.substring(0, newText.length-1);
+        }
 
         // Delete the whole old doc and then insert the new one.  This avoids weird selection issues.
         edit.delete(new vscode.Range(0, 0, textEditor.document.lineCount + 1, 0));
@@ -50,7 +52,7 @@ function formatJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
     }
     catch (err: any) {
         vscode.window.showErrorMessage('FracturedJson: ' + err.message);
-        const pos = getPostionFromError(err, textEditor.document);
+        const pos = getPositionFromError(err, textEditor.document);
         if (pos) {
             textEditor.selection = new vscode.Selection(pos, pos);
         }
@@ -70,7 +72,6 @@ function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEdi
         // user doesn't have to be super-careful when selecting a piece from a list or object.
         const trimmedSel = trimRange(textEditor.document, textEditor.selection);
         const oldText = textEditor.document.getText(trimmedSel);
-        const obj = JSON.parse(oldText);
 
         // Figure out the leading whitespace for the initial line.  This might lead all the way up to the
         // trimmed selection, or it might precede, say, a property name that isn't part of the text being
@@ -88,8 +89,11 @@ function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEdi
         formatter.Options.PrefixString = leadingWs;
 
         // The formatted text includes the prefix string on all lines, but we don't want it on the first.
-        const formattedText = formatter.Serialize(obj) ?? "";
-        const newText = formattedText.substring(leadingWs.length);
+        const formattedText = formatter.Reformat(oldText) ?? "";
+        let newText = formattedText.substring(leadingWs.length);
+        if (newText.endsWith('\n')){
+            newText = newText.substring(0, newText.length-1);
+        }
 
         edit.replace(trimmedSel, newText);
     }
@@ -106,16 +110,16 @@ function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEdi
 function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
     try {
         const oldText = textEditor.document.getText();
-        const obj = JSON.parse(oldText);
+        const formatter = formatterWithOptions(textEditor.options);
 
-        const newText = JSON.stringify(obj);
+        const newText = formatter.Minify(oldText) ?? "";
 
         edit.delete(new vscode.Range(0, 0, textEditor.document.lineCount + 1, 0));
         edit.insert(new vscode.Position(0, 0), newText);
     }
     catch (err: any) {
         vscode.window.showErrorMessage('FracturedJson: ' + err.message);
-        const pos = getPostionFromError(err, textEditor.document);
+        const pos = getPositionFromError(err, textEditor.document);
         if (pos) {
             textEditor.selection = new vscode.Selection(pos, pos);
         }
@@ -132,7 +136,6 @@ function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
 function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
     try {
         const oldText = textEditor.document.getText();
-        const obj = JSON.parse(oldText);
         const formatter = formatterWithOptions(textEditor.options);
         formatter.Options.MaxInlineLength = Number.MAX_VALUE;
         formatter.Options.MaxTotalLineLength = Number.MAX_VALUE;
@@ -146,14 +149,14 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
         formatter.Options.NestedBracketPadding = false;
         formatter.Options.CommentPadding = false;
 
-        const newText = formatter.Serialize(obj) ?? "";
+        const newText = formatter.Reformat(oldText) ?? "";
 
         edit.delete(new vscode.Range(0, 0, textEditor.document.lineCount + 1, 0));
         edit.insert(new vscode.Position(0, 0), newText);
     }
     catch (err: any) {
         vscode.window.showErrorMessage('FracturedJson: ' + err.message);
-        const pos = getPostionFromError(err, textEditor.document);
+        const pos = getPositionFromError(err, textEditor.document);
         if (pos) {
             textEditor.selection = new vscode.Selection(pos, pos);
         }
@@ -171,7 +174,6 @@ function provideRangeEdits(document: vscode.TextDocument, range: vscode.Range,
     // user doesn't have to be super-careful when selecting a piece from a list or object.
     const trimmedSel = trimRange(document, range);
     const oldText = document.getText(trimmedSel);
-    const obj = JSON.parse(oldText);
 
     // Figure out the leading whitespace for the initial line.  This might lead all the way up to the
     // trimmed selection, or it might precede, say, a property name that isn't part of the text being
@@ -189,8 +191,11 @@ function provideRangeEdits(document: vscode.TextDocument, range: vscode.Range,
     formatter.Options.PrefixString = leadingWs;
 
     // The formatted text includes the prefix string on all lines, but we don't want it on the first.
-    const formattedText = formatter.Serialize(obj) ?? "";
-    const newText = formattedText.substring(leadingWs.length);
+    const formattedText = formatter.Reformat(oldText) ?? "";
+    let newText = formattedText.substring(leadingWs.length);
+    if (newText.endsWith('\n')){
+        newText = newText.substring(0, newText.length-1);
+    }
 
     return [vscode.TextEdit.replace(trimmedSel, newText)];
 }
@@ -254,6 +259,7 @@ function formatterWithOptions(options: vscode.TextEditorOptions) {
 
     // FIXME
     formatter.Options.CommentPolicy = CommentPolicy.Preserve;
+    formatter.Options.PreserveBlankLines = true;
 
     switch (config.StringWidthPolicy) {
         case "CharacterCount": {
@@ -262,7 +268,7 @@ function formatterWithOptions(options: vscode.TextEditorOptions) {
         }
         case "EastAsianFullWidth":
         default: {
-            formatter.StringLengthFunc = WideCharStringLength;
+            formatter.StringLengthFunc = wideCharStringLength;
             break;
         }
     }
@@ -280,7 +286,7 @@ function formatterWithOptions(options: vscode.TextEditorOptions) {
  * @param document
  * @returns
  */
-function getPostionFromError(err: Error, document: vscode.TextDocument): vscode.Position | null {
+function getPositionFromError(err: Error, document: vscode.TextDocument): vscode.Position | null {
     if (!err) {
         return null;
     }
@@ -294,7 +300,7 @@ function getPostionFromError(err: Error, document: vscode.TextDocument): vscode.
     return document.positionAt(offset);
 }
 
-function WideCharStringLength(str: string): number {
+function wideCharStringLength(str: string): number {
     return eaw.length(str);
 }
 
