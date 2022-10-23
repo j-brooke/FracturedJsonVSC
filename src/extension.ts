@@ -140,6 +140,8 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
         formatter.Options.MaxInlineLength = Number.MAX_VALUE;
         formatter.Options.MaxTotalLineLength = Number.MAX_VALUE;
         formatter.Options.MaxInlineComplexity = Number.MAX_VALUE;
+        formatter.Options.MaxCompactArrayComplexity = -1;
+        formatter.Options.MaxTableRowComplexity = -1;
         formatter.Options.AlwaysExpandDepth = 0;
         formatter.Options.IndentSpaces = 0;
         formatter.Options.UseTabToIndent = false;
@@ -164,46 +166,87 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
 }
 
 /**
- * Attempts to format the selected text as well-formed JSON.  Leading and trailing whitespace and commas are ignored,
- * as well as a leading property name and colon.  The remainder is expected to be a complete JSON list, object, string,
- * etc. (Called through the official formatting API - either to format a selection or the full doc.)
+ * Attempts to format the selected text as well-formed JSON.
+ * (Called through the official formatting API - either to format a selection or the full doc.)
  */
 function provideRangeEdits(document: vscode.TextDocument, range: vscode.Range,
     options: vscode.FormattingOptions, cancelToken: vscode.CancellationToken): vscode.TextEdit[] {
-    // Restrict the text range to exclude leading and trailing junk.  This is just a convenience so the
-    // user doesn't have to be super-careful when selecting a piece from a list or object.
-    const trimmedSel = trimRange(document, range);
-    const oldText = document.getText(trimmedSel);
-
-    // Figure out the leading whitespace for the initial line.  This might lead all the way up to the
-    // trimmed selection, or it might precede, say, a property name that isn't part of the text being
-    // formatted.
-    //
-    // Whatever that leading whitespace is, we'll use it as a prefix on every line of the formatted
-    // JSON.  Otherwise, lines after the first wouldn't be indented enough when formatting a selection
-    // in the middle of a doc.
-    const startingLine = document.lineAt(trimmedSel.start);
-    const leadingWsRange = new vscode.Range(startingLine.lineNumber, 0, startingLine.lineNumber,
-        startingLine.firstNonWhitespaceCharacterIndex);
-    const leadingWs = document.getText(leadingWsRange);
-
+    const isWholeDoc = isWholeDocumentSelected(document, range);
     const formatter = formatterWithOptions(options);
-    formatter.Options.PrefixString = leadingWs;
-
-    // The formatted text includes the prefix string on all lines, but we don't want it on the first.
-    const formattedText = formatter.Reformat(oldText) ?? "";
-    let newText = formattedText.substring(leadingWs.length);
-    if (newText.endsWith('\n')){
-        newText = newText.substring(0, newText.length-1);
+    if (isWholeDoc) {
+        const newWholeText = formatter.Reformat(document.getText());
+        return (newWholeText)? [vscode.TextEdit.replace(range, newWholeText)] : [];
     }
 
-    return [vscode.TextEdit.replace(trimmedSel, newText)];
+    const trimmedRange = trimRange(document, range);
+    const originalIndents = getOriginalIndentation(document, trimmedRange);
+    const trimmedContent = document.getText(trimmedRange);
+
+    const newPartialText = formatPartialDocument(trimmedContent, originalIndents, formatter);
+    return (newPartialText)? [vscode.TextEdit.replace(trimmedRange, newPartialText)] : [];
 }
 
+function isWholeDocumentSelected(textDoc: vscode.TextDocument, range: vscode.Range): boolean {
+    if (range.start.line !== 0 || range.start.character !== 0) {
+        return false;
+    }
+    const endOfDoc = textDoc.positionAt(Number.MAX_VALUE);
+    return range.end.isEqual(endOfDoc);
+}
+
+function formatPartialDocument(originalText: string, prefixWhitespace: string,
+                               formatter: Formatter): string | undefined {
+    formatter.Options.PrefixString = prefixWhitespace;
+
+    try {
+        return formatter.Reformat(originalText, 0)?.trim() ?? "";
+    }
+    catch (err1: any) {
+        // Do nothing - fall through
+    }
+
+    formatter.Options.AllowTrailingCommas = true;
+    formatter.Options.AlwaysExpandDepth = -100;
+    let needsReplacementComma = originalText.endsWith(",");
+
+    let fakeContainerOutput: string | undefined = undefined;
+    try {
+        const fakeArray = "[" + originalText + "\n]";
+        fakeContainerOutput = formatter.Reformat(fakeArray, -1);
+    }
+    catch (err2: any) {
+        // Do nothing - fall through
+    }
+
+    if (!fakeContainerOutput) {
+        try {
+            const fakeArray = "{" + originalText + "\n}";
+            fakeContainerOutput = formatter.Reformat(fakeArray, -1);
+        }
+        catch (err3: any) {
+            // Do nothing - fall through
+        }
+    }
+
+    if (!fakeContainerOutput) {
+        return undefined;
+    }
+
+    const outputWithoutContainer = fakeContainerOutput.substring(
+        1+prefixWhitespace.length, fakeContainerOutput.length-2)
+        .trim();
+    return (needsReplacementComma)? outputWithoutContainer + "," : outputWithoutContainer;
+}
+
+function getOriginalIndentation(document: vscode.TextDocument, range: vscode.Range): string {
+    const startingLine = document.lineAt(range.start);
+    const leadingWsRange = new vscode.Range(startingLine.lineNumber, 0, startingLine.lineNumber,
+        startingLine.firstNonWhitespaceCharacterIndex);
+    return document.getText(leadingWsRange);
+}
 
 /**
- * Returns a new Range based on the given one, adjusted to skip any leading and trailing
- * whitespace and commas, and possibly a leading property name and colon.
+ * Returns a new Range based on the given one, adjusted to skip any leading and trailing whitespace.
  * @param textDoc The document to which the range refers.
  * @param roughRange The range to be trimmed.
  * @returns A new range, the same size as the original or smaller.
@@ -222,19 +265,11 @@ function trimRange(textDoc: vscode.TextDocument, roughRange: vscode.Range): vsco
     return new vscode.Range(newStartPos, newEndPos);
 }
 
-// Leading stuff that we can safely ignore:
-// * start-of-line
-// * whitespace-or-commas
-// * open-quote, then lots of either non-quote, escaped-quote, or escaped-slash, then close-quote
-// * whitespace
-// * colon
-// * whitespace
-const leadingJunkRegex = /^[\s,]*("([^"]|\\"|\\\\)*"\s*:)?\s*/;
+// Leading stuff that we can safely ignore
+const leadingJunkRegex = /^\s*/;
 
-// Trailing stuff we can safely ignore:
-// * whitespace-or-comma
-// * end-of-line
-const trailingJunkRegex = /[\s,]*$/;
+// Trailing stuff we can safely ignore
+const trailingJunkRegex = /\s*$/;
 
 
 /**

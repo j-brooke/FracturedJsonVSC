@@ -12,10 +12,12 @@
     ],
     "keywords": [
         "JSON",
+        "JSONC",
         "formatter",
         "pretty printer",
         "beautifier",
-        "stringify"
+        "stringify",
+        "comments"
     ],
     "repository": {
         "url": "https://github.com/j-brooke/FracturedJsonVSC"
@@ -28,30 +30,11 @@
         "onCommand:fracturedjsonvsc.formatJsonSelection",
         "onCommand:fracturedjsonvsc.minifyJsonDocument",
         "onCommand:fracturedjsonvsc.nearMinifyJsonDocument",
-        "onLanguage:json"
+        "onLanguage:json",
+        "onLanguage:jsonc"
     ],
     "main": "./out/extension.js",
     "contributes": {
-        "languages": [
-            {
-                "id": "json",
-                "aliases": [
-                    "JSON"
-                ],
-                "extensions": [
-                    ".json"
-                ]
-            },
-            {
-                "id": "jsonc",
-                "aliases": [
-                    "JSONC"
-                ],
-                "extensions": [
-                    ".jsonc"
-                ]
-            }
-        ],
         "commands": [
             {
                 "command": "fracturedjsonvsc.formatJsonDocument",
