@@ -198,6 +198,7 @@ function formatPartialDocument(originalText: string, prefixWhitespace: string,
                                formatter: Formatter): string | undefined {
     formatter.Options.PrefixString = prefixWhitespace;
 
+    // See if we can parse/reformat the text as a single top-level element (and possibly comments and blanks).
     try {
         return formatter.Reformat(originalText, 0)?.trim() ?? "";
     }
@@ -206,8 +207,18 @@ function formatPartialDocument(originalText: string, prefixWhitespace: string,
     }
 
     formatter.Options.AllowTrailingCommas = true;
-    formatter.Options.AlwaysExpandDepth = -100;
-    let needsReplacementComma = originalText.endsWith(",");
+    formatter.Options.AlwaysExpandDepth = -2;
+
+    // If we're trying to process some elements that aren't truly the last in their container, AND there's
+    // a line comment at the end, give up.  It's just too complicated trying to figure out where to put the
+    // comma back in.
+    const replacementCommaMatch = originalText.match(/,\s*(\/\/.*)?$/);
+    if (replacementCommaMatch && replacementCommaMatch[1]) {
+        return undefined;
+    }
+
+    // But if there's no trailing comment, it's easy.  Just remember to deal with it later.
+    const needsReplacementComma = Boolean(replacementCommaMatch);
 
     let fakeContainerOutput: string | undefined = undefined;
     try {
@@ -235,6 +246,7 @@ function formatPartialDocument(originalText: string, prefixWhitespace: string,
     const outputWithoutContainer = fakeContainerOutput.substring(
         1+prefixWhitespace.length, fakeContainerOutput.length-2)
         .trim();
+
     return (needsReplacementComma)? outputWithoutContainer + "," : outputWithoutContainer;
 }
 
