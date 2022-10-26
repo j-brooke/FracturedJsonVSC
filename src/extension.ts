@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
-import {CommentPolicy, Formatter} from 'fracturedjsonjs';
+import {CommentPolicy, Formatter, FracturedJsonError} from 'fracturedjsonjs';
 
 // @ts-ignore
 import * as eaw from 'eastasianwidth';
+import {Position} from "vscode";
 
 /**
  * Called by VSCode when the extension is first used.
@@ -42,63 +43,43 @@ function formatJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
         const formatter = formatterWithOptions(textEditor.options);
 
         let newText = formatter.Reformat(oldText) ?? "";
-        if (newText.endsWith('\n')){
-            newText = newText.substring(0, newText.length-1);
-        }
 
         // Delete the whole old doc and then insert the new one.  This avoids weird selection issues.
         edit.delete(new vscode.Range(0, 0, textEditor.document.lineCount + 1, 0));
         edit.insert(new vscode.Position(0, 0), newText);
     }
     catch (err: any) {
-        vscode.window.showErrorMessage('FracturedJson: ' + err.message);
-        const pos = getPositionFromError(err, textEditor.document);
-        if (pos) {
-            textEditor.selection = new vscode.Selection(pos, pos);
+        const [message, docOffset] = processError(err);
+        if (message) {
+            vscode.window.showErrorMessage('FracturedJson: ' + message);
+        }
+        if (docOffset !== undefined) {
+            const editorPos = textEditor.document.positionAt(docOffset);
+            textEditor.selection = new vscode.Selection(editorPos, editorPos);
         }
     }
 }
 
+
 /**
- * Attempts to format the selected text as well-formed JSON.  Leading and trailing whitespace and commas are ignored,
- * as well as a leading property name and colon.  The remainder is expected to be a complete JSON list, object, string,
- * etc. (Called as a command.)
+ * Attempts to format the selected text.  The selection should either be a complete JSON element - possibly with
+ * comments - or a collection of elements such that adding [] or {} makes them complete.
+ * (Called as a command.)
  * @param textEditor
  * @param edit
  */
 function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
-    try {
-        // Restrict the text range to exclude leading and trailing junk.  This is just a convenience so the
-        // user doesn't have to be super-careful when selecting a piece from a list or object.
-        const trimmedSel = trimRange(textEditor.document, textEditor.selection);
-        const oldText = textEditor.document.getText(trimmedSel);
+    const trimmedSelection = trimRange(textEditor.document, textEditor.selection);
+    const trimmedContent = textEditor.document.getText(trimmedSelection);
 
-        // Figure out the leading whitespace for the initial line.  This might lead all the way up to the
-        // trimmed selection, or it might precede, say, a property name that isn't part of the text being
-        // formatted.
-        //
-        // Whatever that leading whitespace is, we'll use it as a prefix on every line of the formatted
-        // JSON.  Otherwise, lines after the first wouldn't be indented enough when formatting a selection
-        // in the middle of a doc.
-        const startingLine = textEditor.document.lineAt(trimmedSel.start);
-        const leadingWsRange = new vscode.Range(startingLine.lineNumber, 0, startingLine.lineNumber,
-            startingLine.firstNonWhitespaceCharacterIndex);
-        const leadingWs = textEditor.document.getText(leadingWsRange);
+    // Take note of the indentation on the first line of the selection.  This is from the start of the line to
+    // the first character on the line, whether that's part of the selection or not.
+    const originalIndents = getOriginalIndentation(textEditor.document, trimmedSelection);
 
-        const formatter = formatterWithOptions(textEditor.options);
-        formatter.Options.PrefixString = leadingWs;
-
-        // The formatted text includes the prefix string on all lines, but we don't want it on the first.
-        const formattedText = formatter.Reformat(oldText) ?? "";
-        let newText = formattedText.substring(leadingWs.length);
-        if (newText.endsWith('\n')){
-            newText = newText.substring(0, newText.length-1);
-        }
-
-        edit.replace(trimmedSel, newText);
-    }
-    catch (err: any) {
-        vscode.window.showErrorMessage('FracturedJson: ' + err.message);
+    const formatter = formatterWithOptions(textEditor.options);
+    const newPartialText = formatPartialDocument(trimmedContent, originalIndents, formatter);
+    if (newPartialText) {
+        edit.replace(trimmedSelection, newPartialText);
     }
 }
 
@@ -118,16 +99,19 @@ function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
         edit.insert(new vscode.Position(0, 0), newText);
     }
     catch (err: any) {
-        vscode.window.showErrorMessage('FracturedJson: ' + err.message);
-        const pos = getPositionFromError(err, textEditor.document);
-        if (pos) {
-            textEditor.selection = new vscode.Selection(pos, pos);
+        const [message, docOffset] = processError(err);
+        if (message) {
+            vscode.window.showErrorMessage('FracturedJson: ' + message);
+        }
+        if (docOffset !== undefined) {
+            const editorPos = textEditor.document.positionAt(docOffset);
+            textEditor.selection = new vscode.Selection(editorPos, editorPos);
         }
     }
 }
 
 /**
- * Attempts to format the whole doument as nearly-minified JSON.  Children of the root element begin on their
+ * Attempts to format the whole document as nearly-minified JSON.  Children of the root element begin on their
  * line, but are themselves minified.  The gives you a still compact file, but the the user can easily select
  * a subelement and possibly expand it with Format Selection.  (Called as a command.)
  * @param textEditor
@@ -157,16 +141,20 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
         edit.insert(new vscode.Position(0, 0), newText);
     }
     catch (err: any) {
-        vscode.window.showErrorMessage('FracturedJson: ' + err.message);
-        const pos = getPositionFromError(err, textEditor.document);
-        if (pos) {
-            textEditor.selection = new vscode.Selection(pos, pos);
+        const [message, docOffset] = processError(err);
+        if (message) {
+            vscode.window.showErrorMessage('FracturedJson: ' + message);
+        }
+        if (docOffset !== undefined) {
+            const editorPos = textEditor.document.positionAt(docOffset);
+            textEditor.selection = new vscode.Selection(editorPos, editorPos);
         }
     }
 }
 
 /**
- * Attempts to format the selected text as well-formed JSON.
+ * Attempts to format the selected text.  The selection should either be a complete JSON element - possibly with
+ * comments - or a collection of elements such that adding [] or {} makes them complete.
  * (Called through the official formatting API - either to format a selection or the full doc.)
  */
 function provideRangeEdits(document: vscode.TextDocument, range: vscode.Range,
@@ -364,3 +352,20 @@ function wideCharStringLength(str: string): number {
 }
 
 const errorRegex = /at position (\d*)/;
+
+
+function processError(err: any): readonly [message:string, docOffset?: number] {
+    let messageToDisplay: string = err.message;
+    let docOffset: number | undefined = undefined;
+    if (err instanceof FracturedJsonError) {
+        const errPos = (err as FracturedJsonError).InputPosition;
+        const indexOfAt = err.message.indexOf(" at ");
+        messageToDisplay = err.message.substring(0, indexOfAt);
+
+        if (errPos) {
+            messageToDisplay += ` at row=${errPos.Row+1}, col=${errPos.Column+1}`;
+            docOffset = errPos.Index;
+        }
+    }
+    return [messageToDisplay, docOffset];
+}
