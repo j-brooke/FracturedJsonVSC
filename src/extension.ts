@@ -171,16 +171,24 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
  */
 function provideRangeEdits(document: vscode.TextDocument, range: vscode.Range,
     options: vscode.FormattingOptions, cancelToken: vscode.CancellationToken): vscode.TextEdit[] {
-    const isWholeDoc = isWholeDocumentSelected(document, range);
     const formatter = formatterWithOptions(options);
+
+    // If the request is to format the whole doc, do it directly. There are too many edge cases if treated
+    // the same as a selection format.
+    const isWholeDoc = isWholeDocumentSelected(document, range);
     if (isWholeDoc) {
         const newWholeText = formatter.Reformat(document.getText());
         return (newWholeText)? [vscode.TextEdit.replace(range, newWholeText)] : [];
     }
 
+    // Reduce the selection by getting rid of leading/trailing whitespace.  Otherwise it would throw our indentation
+    // off.
     const trimmedRange = trimRange(document, range);
-    const originalIndents = getOriginalIndentation(document, trimmedRange);
     const trimmedContent = document.getText(trimmedRange);
+
+    // Take note of the indentation on the first line of the selection.  This is from the start of the line to
+    // the first character on the line, whether that's part of the selection or not.
+    const originalIndents = getOriginalIndentation(document, trimmedRange);
 
     const newPartialText = formatPartialDocument(trimmedContent, originalIndents, formatter);
     return (newPartialText)? [vscode.TextEdit.replace(trimmedRange, newPartialText)] : [];
@@ -198,7 +206,7 @@ function formatPartialDocument(originalText: string, prefixWhitespace: string,
                                formatter: Formatter): string | undefined {
     formatter.Options.PrefixString = prefixWhitespace;
 
-    // See if we can parse/reformat the text as a single top-level element (and possibly comments and blanks).
+    // See if we can parse/reformat the selected text as a single top-level element (and possibly comments and blanks).
     try {
         return formatter.Reformat(originalText, 0)?.trim() ?? "";
     }
@@ -220,6 +228,8 @@ function formatPartialDocument(originalText: string, prefixWhitespace: string,
     // But if there's no trailing comment, it's easy.  Just remember to deal with it later.
     const needsReplacementComma = Boolean(replacementCommaMatch);
 
+    // Try wrapping the selected text in brackets to make it a dummy container.  (The \n before the close
+    // is in case the selection ends in a line comment.)
     let fakeContainerOutput: string | undefined = undefined;
     try {
         const fakeArray = "[" + originalText + "\n]";
@@ -243,10 +253,12 @@ function formatPartialDocument(originalText: string, prefixWhitespace: string,
         return undefined;
     }
 
+    // Remove the fake container brackets (and the newline at the end).
     const outputWithoutContainer = fakeContainerOutput.substring(
         1+prefixWhitespace.length, fakeContainerOutput.length-2)
         .trim();
 
+    // Remember to put the comma back, if necessary.
     return (needsReplacementComma)? outputWithoutContainer + "," : outputWithoutContainer;
 }
 
