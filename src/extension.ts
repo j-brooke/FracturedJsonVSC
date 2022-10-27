@@ -3,7 +3,6 @@ import {CommentPolicy, Formatter, FracturedJsonError} from 'fracturedjsonjs';
 
 // @ts-ignore
 import * as eaw from 'eastasianwidth';
-import {Position} from "vscode";
 
 /**
  * Called by VSCode when the extension is first used.
@@ -40,7 +39,7 @@ export function deactivate() { }
 function formatJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
     try {
         const oldText = textEditor.document.getText();
-        const formatter = formatterWithOptions(textEditor.options);
+        const formatter = formatterWithOptions(textEditor.options, textEditor.document.languageId);
 
         let newText = formatter.Reformat(oldText) ?? "";
 
@@ -76,7 +75,7 @@ function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEdi
     // the first character on the line, whether that's part of the selection or not.
     const originalIndents = getOriginalIndentation(textEditor.document, trimmedSelection);
 
-    const formatter = formatterWithOptions(textEditor.options);
+    const formatter = formatterWithOptions(textEditor.options, textEditor.document.languageId);
     const newPartialText = formatPartialDocument(trimmedContent, originalIndents, formatter);
     if (newPartialText) {
         edit.replace(trimmedSelection, newPartialText);
@@ -91,7 +90,7 @@ function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEdi
 function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
     try {
         const oldText = textEditor.document.getText();
-        const formatter = formatterWithOptions(textEditor.options);
+        const formatter = formatterWithOptions(textEditor.options, textEditor.document.languageId);
 
         const newText = formatter.Minify(oldText) ?? "";
 
@@ -120,7 +119,7 @@ function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
 function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
     try {
         const oldText = textEditor.document.getText();
-        const formatter = formatterWithOptions(textEditor.options);
+        const formatter = formatterWithOptions(textEditor.options, textEditor.document.languageId);
         formatter.Options.MaxInlineLength = Number.MAX_VALUE;
         formatter.Options.MaxTotalLineLength = Number.MAX_VALUE;
         formatter.Options.MaxInlineComplexity = Number.MAX_VALUE;
@@ -159,7 +158,7 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
  */
 function provideRangeEdits(document: vscode.TextDocument, range: vscode.Range,
     options: vscode.FormattingOptions, cancelToken: vscode.CancellationToken): vscode.TextEdit[] {
-    const formatter = formatterWithOptions(options);
+    const formatter = formatterWithOptions(options, document.languageId);
 
     // If the request is to format the whole doc, do it directly. There are too many edge cases if treated
     // the same as a selection format.
@@ -289,26 +288,31 @@ const trailingJunkRegex = /\s*$/;
  * configuration.
  * @returns A configured FracturedJson object
  */
-function formatterWithOptions(options: vscode.TextEditorOptions) {
+function formatterWithOptions(options: vscode.TextEditorOptions, langId: string) {
     const formatter = new Formatter();
 
     // These settings come straight from our plugin's options.
     const config = vscode.workspace.getConfiguration('fracturedjsonvsc');
-    formatter.Options.MaxInlineComplexity = config.MaxInlineComplexity;
-    formatter.Options.MaxInlineLength = config.MaxInlineLength;
-    formatter.Options.MaxCompactArrayComplexity = config.MaxCompactArrayComplexity;
-    formatter.Options.NestedBracketPadding = config.NestedBracketPadding;
-    formatter.Options.SimpleBracketPadding = config.SimpleBracketPadding;
-    formatter.Options.ColonPadding = config.ColonPadding;
-    formatter.Options.CommaPadding = config.CommaPadding;
-    formatter.Options.AlwaysExpandDepth = config.AlwaysExpandDepth;
-    formatter.Options.DontJustifyNumbers = config.DontJustifyNumbers;
 
-    // FIXME
-    formatter.Options.CommentPolicy = CommentPolicy.Preserve;
-    formatter.Options.PreserveBlankLines = true;
+    formatter.Options.MaxInlineLength = config.v3.MaxInlineLength;
+    formatter.Options.MaxTotalLineLength = config.v3.MaxTotalLineLength;
+    formatter.Options.MaxInlineComplexity = config.v3.MaxInlineComplexity;
+    formatter.Options.MaxCompactArrayComplexity = config.v3.MaxCompactArrayComplexity;
+    formatter.Options.MaxTableRowComplexity = config.v3.MaxTableRowComplexity;
+    formatter.Options.MinCompactArrayRowItems = config.v3.MinCompactArrayRowItems;
+    formatter.Options.AlwaysExpandDepth = config.v3.AlwaysExpandDepth;
 
-    switch (config.StringWidthPolicy) {
+    formatter.Options.NestedBracketPadding = config.v3.NestedBracketPadding;
+    formatter.Options.SimpleBracketPadding = config.v3.SimpleBracketPadding;
+    formatter.Options.ColonPadding = config.v3.ColonPadding;
+    formatter.Options.CommaPadding = config.v3.CommaPadding;
+    formatter.Options.CommentPadding = config.v3.CommentPadding;
+
+    formatter.Options.DontJustifyNumbers = config.v3.DontJustifyNumbers;
+    formatter.Options.PreserveBlankLines = config.v3.PreserveBlankLines;
+    formatter.Options.AllowTrailingCommas = config.v3.AllowTrailingCommas;
+
+    switch (config.v3.StringWidthPolicy) {
         case "CharacterCount": {
             formatter.StringLengthFunc = Formatter.StringLengthByCharCount;
             break;
@@ -320,6 +324,20 @@ function formatterWithOptions(options: vscode.TextEditorOptions) {
         }
     }
 
+    const relevantCommentSetting = (langId=="json")? config.v3.CommentPolicyForJSON : config.v3.CommentPolicyForJSONC;
+    switch (relevantCommentSetting) {
+        case "TreatAsError":
+            formatter.Options.CommentPolicy = CommentPolicy.TreatAsError;
+            break;
+        case "Remove":
+            formatter.Options.CommentPolicy = CommentPolicy.Remove;
+            break;
+        case "Preserve":
+        default:
+            formatter.Options.CommentPolicy = CommentPolicy.Preserve;
+            break;
+    }
+
     // Use the editor's built-in mechanisms for tabs/spaces.
     formatter.Options.IndentSpaces = Number(options.tabSize);
     formatter.Options.UseTabToIndent = !options.insertSpaces;
@@ -327,32 +345,9 @@ function formatterWithOptions(options: vscode.TextEditorOptions) {
     return formatter;
 }
 
-/**
- * Returns the Position mentioned in the error message, if possible.
- * @param err
- * @param document
- * @returns
- */
-function getPositionFromError(err: Error, document: vscode.TextDocument): vscode.Position | null {
-    if (!err) {
-        return null;
-    }
-
-    const errMatch = err.message.match(errorRegex);
-    if (!errMatch) {
-        return null;
-    }
-
-    const offset = Number(errMatch[1]);
-    return document.positionAt(offset);
-}
-
 function wideCharStringLength(str: string): number {
     return eaw.length(str);
 }
-
-const errorRegex = /at position (\d*)/;
-
 
 function processError(err: any): readonly [message:string, docOffset?: number] {
     let messageToDisplay: string = err.message;
