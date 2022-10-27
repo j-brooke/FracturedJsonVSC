@@ -17,6 +17,7 @@
         "pretty printer",
         "beautifier",
         "stringify",
+        "compact",
         "comments"
     ],
     "repository": {
