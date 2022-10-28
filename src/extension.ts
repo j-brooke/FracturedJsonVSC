@@ -1,3 +1,11 @@
+//
+//  FracturedJsonVSC
+//  Copyright 2022 Jesse Brooke
+//  Project site: https://github.com/j-brooke/FracturedJsonVSC
+//  FracturedJson Home: https://j-brooke.github.io/FracturedJson/
+//  License: MIT
+//
+
 import * as vscode from 'vscode';
 import {CommentPolicy, Formatter, FracturedJsonError} from 'fracturedjsonjs';
 
@@ -9,20 +17,25 @@ import * as eaw from 'eastasianwidth';
  */
 export function activate(context: vscode.ExtensionContext) {
     // Set up some regular commands.
-    const fdReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.formatJsonDocument', formatJsonDocument);
+    const fdReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.formatJsonDocument',
+        formatJsonDocument);
     context.subscriptions.push(fdReg);
 
-    const fsReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.formatJsonSelection', formatJsonSelection);
+    const fsReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.formatJsonSelection',
+        formatJsonSelection);
     context.subscriptions.push(fsReg);
 
-    const minReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.minifyJsonDocument', minifyJsonDocument);
+    const minReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.minifyJsonDocument',
+        minifyJsonDocument);
     context.subscriptions.push(minReg);
 
-    const nearReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.nearMinifyJsonDocument', nearMinifyJsonDocument);
+    const nearReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.nearMinifyJsonDocument',
+        nearMinifyJsonDocument);
     context.subscriptions.push(nearReg);
 
-    // Register with the official formatting API.
-    vscode.languages.registerDocumentRangeFormattingEditProvider(['json', 'jsonc'], { provideDocumentRangeFormattingEdits: provideRangeEdits });
+    // Register with the official formatting API to provide both whole-document and selection formatting.
+    vscode.languages.registerDocumentRangeFormattingEditProvider(['json', 'jsonc'],
+        { provideDocumentRangeFormattingEdits: provideRangeEdits });
 }
 
 /**
@@ -33,8 +46,6 @@ export function deactivate() { }
 
 /**
  * Attempts to format the entire contents of the editor as JSON. (Called as a command.)
- * @param textEditor
- * @param edit
  */
 function formatJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
     try {
@@ -64,10 +75,9 @@ function formatJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
  * Attempts to format the selected text.  The selection should either be a complete JSON element - possibly with
  * comments - or a collection of elements such that adding [] or {} makes them complete.
  * (Called as a command.)
- * @param textEditor
- * @param edit
  */
 function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
+    // Trim leading and trailing whitespace from the selection, to reduce whitespace hassles.
     const trimmedSelection = trimRange(textEditor.document, textEditor.selection);
     const trimmedContent = textEditor.document.getText(trimmedSelection);
 
@@ -83,9 +93,9 @@ function formatJsonSelection(textEditor: vscode.TextEditor, edit: vscode.TextEdi
 }
 
 /**
- * Attempts to format the whole document as minified JSON.  (Called as a command.)
- * @param textEditor
- * @param edit
+ * Attempts to format the whole document as minified JSON.  If the settings are set to preserve comments and/or
+ * blank lines, they will be included in the result with newlines in all the right spots so that info isn't lost.
+ * (Called as a command.)
  */
 function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
     try {
@@ -110,11 +120,11 @@ function minifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEdit
 }
 
 /**
- * Attempts to format the whole document as nearly-minified JSON.  Children of the root element begin on their
- * line, but are themselves minified.  The gives you a still compact file, but the the user can easily select
- * a subelement and possibly expand it with Format Selection.  (Called as a command.)
- * @param textEditor
- * @param edit
+ * Attempts to format the whole document as nearly-minified JSON.  Children of the root element begin on their own
+ * lines, but are themselves minified.  The gives you a still compact file, but the the user can easily select
+ * a sub-element and possibly expand it with Format Selection.  (If the settings require preserving comments and/or
+ * blank lines, children of the root might take up more than one line.)
+ * (Called as a command.)
  */
 function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) {
     try {
@@ -153,7 +163,7 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
 
 /**
  * Attempts to format the selected text.  The selection should either be a complete JSON element - possibly with
- * comments - or a collection of elements such that adding [] or {} makes them complete.
+ * comments before/after - or a collection of elements such that adding [] or {} makes them complete.
  * (Called through the official formatting API - either to format a selection or the full doc.)
  */
 function provideRangeEdits(document: vscode.TextDocument, range: vscode.Range,
@@ -181,6 +191,9 @@ function provideRangeEdits(document: vscode.TextDocument, range: vscode.Range,
     return (newPartialText)? [vscode.TextEdit.replace(trimmedRange, newPartialText)] : [];
 }
 
+/**
+ * Tests whether the given range spans the whole document.
+ */
 function isWholeDocumentSelected(textDoc: vscode.TextDocument, range: vscode.Range): boolean {
     if (range.start.line !== 0 || range.start.character !== 0) {
         return false;
@@ -189,6 +202,11 @@ function isWholeDocumentSelected(textDoc: vscode.TextDocument, range: vscode.Ran
     return range.end.isEqual(endOfDoc);
 }
 
+/**
+ * Tries to reform the given string as a partial selection.  If the selection can't be processed as a single JSON
+ * element (possibly with comments before/after), then we try wrapping brackets around it and see if we can
+ * process it that way.
+ */
 function formatPartialDocument(originalText: string, prefixWhitespace: string,
                                formatter: Formatter): string | undefined {
     formatter.Options.PrefixString = prefixWhitespace;
@@ -204,15 +222,18 @@ function formatPartialDocument(originalText: string, prefixWhitespace: string,
     formatter.Options.AllowTrailingCommas = true;
     formatter.Options.AlwaysExpandDepth = -2;
 
-    // If we're trying to process some elements that aren't truly the last in their container, AND there's
-    // a line comment at the end, give up.  It's just too complicated trying to figure out where to put the
-    // comma back in.
-    const replacementCommaMatch = originalText.match(/,\s*(\/\/.*)?$/);
+    // Look for a comma near the end of the selected text.  If there is one, then the selection probably isn't really
+    // the end of its container.  The comma will be lost when we reformat, so we'll need to put it back.
+    // Technically, though, we're looking for a comma possibly followed by a line comment here.
+    const replacementCommaMatch = originalText.match(endsInCommaRegex);
+
+    // If both a comma and a line comment are present at the end, just give up.  There are way too many edge cases
+    // to try to handle them all.
     if (replacementCommaMatch && replacementCommaMatch[1]) {
         return undefined;
     }
 
-    // But if there's no trailing comment, it's easy.  Just remember to deal with it later.
+    // If there's no trailing comment, it's easy.  Just remember to deal with it later.
     const needsReplacementComma = Boolean(replacementCommaMatch);
 
     // Try wrapping the selected text in brackets to make it a dummy container.  (The \n before the close
@@ -249,6 +270,16 @@ function formatPartialDocument(originalText: string, prefixWhitespace: string,
     return (needsReplacementComma)? outputWithoutContainer + "," : outputWithoutContainer;
 }
 
+/**
+ * Regular expression that looks for a comma, maybe whitespace, maybe a line comment (//), and then the end of input.
+ */
+const endsInCommaRegex = /,\s*(\/\/.*)?$/;
+
+
+/**
+ * Returns the whitespace string on the selection's starting line up until the first non-whitespace.  This is used
+ * as the starting indentation for partial selections.
+ */
 function getOriginalIndentation(document: vscode.TextDocument, range: vscode.Range): string {
     const startingLine = document.lineAt(range.start);
     const leadingWsRange = new vscode.Range(startingLine.lineNumber, 0, startingLine.lineNumber,
@@ -258,9 +289,6 @@ function getOriginalIndentation(document: vscode.TextDocument, range: vscode.Ran
 
 /**
  * Returns a new Range based on the given one, adjusted to skip any leading and trailing whitespace.
- * @param textDoc The document to which the range refers.
- * @param roughRange The range to be trimmed.
- * @returns A new range, the same size as the original or smaller.
  */
 function trimRange(textDoc: vscode.TextDocument, roughRange: vscode.Range): vscode.Range {
     // Do some regex matches at the beginning and end of the selected text.  Note the lengths of the matches.
@@ -324,6 +352,7 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
         }
     }
 
+    // We have two different CommentPolicy settings - one for JSON and one for JSONC.
     const relevantCommentSetting = (langId=="json")? config.v3.CommentPolicyForJSON : config.v3.CommentPolicyForJSONC;
     switch (relevantCommentSetting) {
         case "TreatAsError":
@@ -345,17 +374,29 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
     return formatter;
 }
 
+/**
+ * String length function that properly accounts for East Asian full-width characters.
+ */
 function wideCharStringLength(str: string): number {
     return eaw.length(str);
 }
 
+/**
+ * Examine the given error and, if possible, return an adjust message and a position in the document.
+ */
 function processError(err: any): readonly [message:string, docOffset?: number] {
     let messageToDisplay: string = err.message;
     let docOffset: number | undefined = undefined;
+
     if (err instanceof FracturedJsonError) {
         const errPos = (err as FracturedJsonError).InputPosition;
+
+        // In most cases, FracturedJsonError messages already include the row/column of the input where the error
+        // occurred.  But those are expressed as zero-based numbers, while VSCode numbers them from 1.
         const indexOfAt = err.message.indexOf(" at ");
-        messageToDisplay = err.message.substring(0, indexOfAt);
+        if (indexOfAt >= 0) {
+            messageToDisplay = err.message.substring(0, indexOfAt);
+        }
 
         if (errPos) {
             messageToDisplay += ` at row=${errPos.Row+1}, col=${errPos.Column+1}`;
