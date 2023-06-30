@@ -335,6 +335,7 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
     formatter.Options.ColonPadding = config.v3.ColonPadding;
     formatter.Options.CommaPadding = config.v3.CommaPadding;
     formatter.Options.CommentPadding = config.v3.CommentPadding;
+    formatter.Options.OmitTrailingWhitespace = config.v3.OmitTrailingWhitespace;
 
     formatter.Options.DontJustifyNumbers = config.v3.DontJustifyNumbers;
     formatter.Options.PreserveBlankLines = config.v3.PreserveBlankLines;
@@ -353,7 +354,7 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
     }
 
     // We have two different CommentPolicy settings - one for JSON and one for JSONC.
-    const relevantCommentSetting = (langId=="json")? config.v3.CommentPolicyForJSON : config.v3.CommentPolicyForJSONC;
+    const relevantCommentSetting = (langId==="json")? config.v3.CommentPolicyForJSON : config.v3.CommentPolicyForJSONC;
     switch (relevantCommentSetting) {
         case "TreatAsError":
             formatter.Options.CommentPolicy = CommentPolicy.TreatAsError;

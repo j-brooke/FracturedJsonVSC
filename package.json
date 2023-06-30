@@ -3,7 +3,7 @@
     "displayName": "FracturedJson",
     "description": "A JSON formatter that produces human-readable but fairly compact output.",
     "publisher": "j-brooke",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "engines": {
         "vscode": "^1.57.0"
     },
@@ -69,7 +69,6 @@
                     "description": "Maximum length of complex inline elements, including indentation.",
                     "order": 12
                 },
-
                 "fracturedjsonvsc.v3.MaxInlineComplexity": {
                     "type": "number",
                     "default": 2,
@@ -100,7 +99,6 @@
                     "description": "Depth at which lists/objects are always expanded regardless of other settings. -1=none, 0=root, etc.",
                     "order": 25
                 },
-
                 "fracturedjsonvsc.v3.CommentPolicyForJSON": {
                     "type": "string",
                     "default": "TreatAsError",
@@ -123,7 +121,6 @@
                     ],
                     "order": 32
                 },
-
                 "fracturedjsonvsc.v3.NestedBracketPadding": {
                     "type": "boolean",
                     "default": true,
@@ -154,7 +151,12 @@
                     "description": "Insert spaces before/after comments (depending on their position).",
                     "order": 45
                 },
-
+                "fracturedjsonvsc.v3.OmitTrailingWhitespace": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Trims spaces/tabs at the ends of lines.",
+                    "order": 46
+                },
                 "fracturedjsonvsc.v3.DontJustifyNumbers": {
                     "type": "boolean",
                     "default": false,
@@ -173,7 +175,6 @@
                     "description": "If true, commas at then ends of arrays/objects won't be treated as errors.",
                     "order": 53
                 },
-
                 "fracturedjsonvsc.v3.StringWidthPolicy": {
                     "type": "string",
                     "default": "EastAsianFullWidth",
@@ -218,8 +219,8 @@
         "vscode-test": "^1.5.2"
     },
     "dependencies": {
+        "@vscode/vsce": "^2.19.0",
         "eastasianwidth": "^0.2.0",
-        "fracturedjsonjs": "^3.0.0",
-        "vsce": "^2.13.0"
+        "fracturedjsonjs": "^3.1.0"
     }
 }

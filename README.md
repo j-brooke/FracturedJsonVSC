@@ -69,6 +69,11 @@ FracturedJson's **Format Selection** can only process selections that are either
 
 ## Release Notes
 
+### 3.1.0
+
+New setting: `Omit Trailing Whitespace`.  Defaults to `true`.  When checked, there will never be spaces or tabs at the end of lines of formatted code.
+
+
 ### 3.0.0
 
 **New features:**
