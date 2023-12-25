@@ -3,7 +3,7 @@
     "displayName": "FracturedJson",
     "description": "A JSON formatter that produces human-readable but fairly compact output.",
     "publisher": "j-brooke",
-    "version": "3.1.0",
+    "version": "3.1.1",
     "engines": {
         "vscode": "^1.57.0"
     },
@@ -181,11 +181,13 @@
                     "description": "Determines how many spaces are added when aligning things as tables.",
                     "enum": [
                         "CharacterCount",
-                        "EastAsianFullWidth"
+                        "EastAsianFullWidth",
+                        "EastAsianTreatAmbiguousAsWide"
                     ],
                     "enumDescriptions": [
                         "Aligns tables based on simple character counts.",
-                        "Aligns tables adjusting for unicode FullWidth characters."
+                        "Aligns tables adjusting for East Asian FullWidth characters.",
+                        "Aligns tables adjusting for East Asian FullWidth characters, treating ambiguous ones as wide."
                     ],
                     "order": 54
                 }
@@ -220,7 +222,7 @@
     },
     "dependencies": {
         "@vscode/vsce": "^2.19.0",
-        "eastasianwidth": "^0.2.0",
-        "fracturedjsonjs": "^3.1.0"
+        "fracturedjsonjs": "^3.1.0",
+        "get-east-asian-width": "^1.2.0"
     }
 }
