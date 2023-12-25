@@ -69,6 +69,17 @@ FracturedJson's **Format Selection** can only process selections that are either
 
 ## Release Notes
 
+### 3.1.1
+
+**Settings Change**
+
+The setting `String Width Policy` has a new default behavior.  The default value of `East Asian Full Width` now treats glyphs identified in [Unicode Standard Annex #11](https://www.unicode.org/reports/tr11/) as "ambiguous" as narrow instead of wide, as recommended by the annex.  Some of those ambiguous glyphs are commonly used some western languages, and so the old behavior of treating them as wide was messing those up.
+
+In case anyone was relying on the old behavior, I've introduced a new option - `East Asian Treat Ambiguous As Wide` - to try to preserve that behavior.
+
+The third option is just like before: `Character Count` treats each UTF-16 character as having the same width.
+
+
 ### 3.1.0
 
 New setting: `Omit Trailing Whitespace`.  Defaults to `true`.  When checked, there will never be spaces or tabs at the end of lines of formatted code.

@@ -8,14 +8,12 @@
 
 import * as vscode from 'vscode';
 import {CommentPolicy, Formatter, FracturedJsonError} from 'fracturedjsonjs';
-
-// @ts-ignore
-import * as eaw from 'eastasianwidth';
+let eastAsianStringWidth: (cp: number, obj:object) => number;
 
 /**
  * Called by VSCode when the extension is first used.
  */
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     // Set up some regular commands.
     const fdReg = vscode.commands.registerTextEditorCommand('fracturedjsonvsc.formatJsonDocument',
         formatJsonDocument);
@@ -35,7 +33,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register with the official formatting API to provide both whole-document and selection formatting.
     vscode.languages.registerDocumentRangeFormattingEditProvider(['json', 'jsonc'],
-        { provideDocumentRangeFormattingEdits: provideRangeEdits });
+        { provideDocumentRangeFormattingEdits: provideRangeEdits }
+    );
+
+    let eastAsianWidthMod = await import('get-east-asian-width');
+    eastAsianStringWidth = eastAsianWidthMod.eastAsianWidth;
 }
 
 /**
@@ -304,13 +306,6 @@ function trimRange(textDoc: vscode.TextDocument, roughRange: vscode.Range): vsco
     return new vscode.Range(newStartPos, newEndPos);
 }
 
-// Leading stuff that we can safely ignore
-const leadingJunkRegex = /^\s*/;
-
-// Trailing stuff we can safely ignore
-const trailingJunkRegex = /\s*$/;
-
-
 /**
  * Returns a new FracturedJson instance with settings pulled from the workspace
  * configuration.
@@ -346,9 +341,12 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
             formatter.StringLengthFunc = Formatter.StringLengthByCharCount;
             break;
         }
+        case "EastAsianTreatAmbiguousAsWide":
+            formatter.StringLengthFunc = wideCharStringLengthWideAmbiguous;
+            break;
         case "EastAsianFullWidth":
         default: {
-            formatter.StringLengthFunc = wideCharStringLength;
+            formatter.StringLengthFunc = wideCharStringLengthNarrowAmbiguous;
             break;
         }
     }
@@ -376,10 +374,28 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
 }
 
 /**
- * String length function that properly accounts for East Asian full-width characters.
+ * One of two string length function that properly accounts for East Asian full-width characters.
+ * This one assumes ambiguous characters are narrow (which is what the Unicode appendix suggests
+ * when the context doesn't give any hints.)
  */
-function wideCharStringLength(str: string): number {
-    return eaw.length(str);
+function wideCharStringLengthNarrowAmbiguous(str: string): number {
+    let len = 0;
+    for (const codePtChar of str) {
+        len += eastAsianStringWidth(codePtChar.codePointAt(0) as number, eaOptionsNarrow);
+    }
+    return len;
+}
+
+/**
+ * One of two string length function that properly accounts for East Asian full-width characters.
+ * This one assumes ambiguous characters are wide.
+ */
+function wideCharStringLengthWideAmbiguous(str: string): number {
+    let len = 0;
+    for (const codePtChar of str) {
+        len += eastAsianStringWidth(codePtChar.codePointAt(0) as number, eaOptionsWide);
+    }
+    return len;
 }
 
 /**
@@ -406,3 +422,13 @@ function processError(err: any): readonly [message:string, docOffset?: number] {
     }
     return [messageToDisplay, docOffset];
 }
+
+// Leading stuff that we can safely ignore
+const leadingJunkRegex = /^\s*/;
+
+// Trailing stuff we can safely ignore
+const trailingJunkRegex = /\s*$/;
+
+// Options used by eastAsianWidth to set how ambiguous characters are handled.
+const eaOptionsNarrow = {ambiguousAsWide: false};
+const eaOptionsWide = {ambiguousAsWide: true};
