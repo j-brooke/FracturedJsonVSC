@@ -5,7 +5,7 @@ A JSON and JSONC formatter that produces human-readable but fairly compact outpu
 * Arrays and objects are written on single lines, if their contents aren't too complex and the resulting line wouldn't be too long.
 * Longer arrays will be written on multiple lines, with multiple items per line, as long as those items aren't too complex.
 * If several successive inline arrays or objects are similar enough, they will be formatted as a table, with their properties aligned.
-* Otherwise, each object property or array item is written begining on its own line, indented one step deeper than its parent.
+* Otherwise, each object property or array item is written beginning on its own line, indented one step deeper than its parent.
 
 There are lots of settings available to control the output, but for the most part you can ignore them. FracturedJson produces nice-looking output from any set of JSON data automatically.  If comments are present, FracturedJson is smart about keeping them with the elements to which the refer when things are moved around.
 
@@ -69,7 +69,12 @@ FracturedJson's **Format Selection** can only process selections that are either
 
 ## Release Notes
 
-## 3.1.2
+### 4.0.0
+
+Replaced setting `Don't Justify Numbers` with a new one, `Number List Alignment`, to control how arrays or table columns of numbers are handled.  Use `Normalize` if you want columns of numbers to be re-written with the same number of digits after the decimal point.  Use `Left` or `Right` if you want the numbers preserved exactly as they are in the original document, but lined up to one side or the other.  Use `Decimal` if you want the numbers preserved but lined up according to their decimal points.
+
+
+### 3.1.2
 
 * Fixed a [bug](https://github.com/j-brooke/FracturedJson/issues/27) where numbers that overflow or underflow a 64-bit float could (depending on settings) be written to the output as `Infinity` or `0`.  In the overflow case, that caused output to be invalid JSON.  With this fix, FracturedJson recognizes that it can't safely reformat numbers like this, and uses the exact number representation from the original document.
 
@@ -94,7 +99,7 @@ New setting: `Omit Trailing Whitespace`.  Defaults to `true`.  When checked, the
 
 **New features:**
 * Comments are now supported.  There are two different settings for how to handle comments: one for "JSON" and one for "JSON with Comments".  For each, your choices are `Treat as Error`, `Remove`, and `Preserve`.
-* Deep table formatting. In version 2, only the immediate children of table rows were lined up. Now, if space permits and the types are consistent, all descendents are aligned as table columns.
+* Deep table formatting. In version 2, only the immediate children of table rows were lined up. Now, if space permits and the types are consistent, all descendants are aligned as table columns.
 * New length limit option: `MaxTotalLineLength`.  `MaxTotalLineLength` restricts total line size, while the older setting, `MaxInlineLength`, doesn't count indentation.  You can use both if you want, but most people will probably just want `MaxTotalLineLength`.  Note that the length restrictions only apply to combined elements like arrays and objects.  A single element with its property name and attached comments may still exceed these limits.
 * Option to preserve blank lines.
 * Option to ignore trailing commas.

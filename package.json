@@ -3,7 +3,7 @@
     "displayName": "FracturedJson",
     "description": "A JSON formatter that produces human-readable but fairly compact output.",
     "publisher": "j-brooke",
-    "version": "3.1.2",
+    "version": "4.0.0",
     "engines": {
         "vscode": "^1.57.0"
     },
@@ -157,10 +157,22 @@
                     "description": "Trims spaces/tabs at the ends of lines.",
                     "order": 46
                 },
-                "fracturedjsonvsc.v3.DontJustifyNumbers": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "If true, numbers won't be right-aligned with matching precision.",
+                "fracturedjsonvsc.v4.NumberListAlignment": {
+                    "type": "string",
+                    "default": "Normalize",
+                    "description": "Controls how lists or columns of numbers (possibly with nulls) are aligned, and whether their precision may be normalized.",
+                    "enum": [
+                        "Left",
+                        "Right",
+                        "Decimal",
+                        "Normalize"
+                    ],
+                    "enumDescriptions": [
+                        "Left-aligns numbers, keeping each exactly as it appears in the input document.",
+                        "Right-aligns numbers, keeping each exactly as it appears in the input document.",
+                        "Lines up decimal points but keeps each number exactly as it appears in the input document.",
+                        "Right-aligns numbers, writing them all with the same number of digits after the decimal point."
+                    ],
                     "order": 51
                 },
                 "fracturedjsonvsc.v3.PreserveBlankLines": {
@@ -222,7 +234,7 @@
     },
     "dependencies": {
         "@vscode/vsce": "^2.19.0",
-        "fracturedjsonjs": "^3.1.1",
+        "fracturedjsonjs": "^4.0.0",
         "get-east-asian-width": "^1.2.0"
     }
 }

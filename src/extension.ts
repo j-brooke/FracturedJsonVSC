@@ -7,7 +7,7 @@
 //
 
 import * as vscode from 'vscode';
-import {CommentPolicy, Formatter, FracturedJsonError} from 'fracturedjsonjs';
+import {CommentPolicy, Formatter, FracturedJsonError, NumberListAlignment} from 'fracturedjsonjs';
 let eastAsianStringWidth: (cp: number, obj:object) => number;
 
 /**
@@ -332,7 +332,27 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
     formatter.Options.CommentPadding = config.v3.CommentPadding;
     formatter.Options.OmitTrailingWhitespace = config.v3.OmitTrailingWhitespace;
 
-    formatter.Options.DontJustifyNumbers = config.v3.DontJustifyNumbers;
+    formatter.Options.NumberListAlignment = config.v4.NumberListAlignment;
+    switch (config.v4.NumberListAlignment) {
+        case "Left": {
+            formatter.Options.NumberListAlignment = NumberListAlignment.Left;
+            break;
+        }
+        case "Right": {
+            formatter.Options.NumberListAlignment = NumberListAlignment.Right;
+            break;
+        }
+        case "Decimal": {
+            formatter.Options.NumberListAlignment = NumberListAlignment.Decimal;
+            break;
+        }
+        default: {
+            formatter.Options.NumberListAlignment = NumberListAlignment.Normalize;
+            break;
+        }
+    }
+
+
     formatter.Options.PreserveBlankLines = config.v3.PreserveBlankLines;
     formatter.Options.AllowTrailingCommas = config.v3.AllowTrailingCommas;
 
