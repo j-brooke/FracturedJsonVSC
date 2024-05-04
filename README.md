@@ -69,6 +69,10 @@ FracturedJson's **Format Selection** can only process selections that are either
 
 ## Release Notes
 
+### 4.0.1
+
+* Fixed a [bug](https://github.com/j-brooke/FracturedJson/issues/32) where certain types of invalid JSON were removed rather than causing an error.
+
 ### 4.0.0
 
 Replaced setting `Don't Justify Numbers` with a new one, `Number List Alignment`, to control how arrays or table columns of numbers are handled.  Use `Normalize` if you want columns of numbers to be re-written with the same number of digits after the decimal point.  Use `Left` or `Right` if you want the numbers preserved exactly as they are in the original document, but lined up to one side or the other.  Use `Decimal` if you want the numbers preserved but lined up according to their decimal points.
