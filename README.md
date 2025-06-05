@@ -69,6 +69,10 @@ FracturedJson's **Format Selection** can only process selections that are either
 
 ## Release Notes
 
+### 4.1.0
+
+New setting `Table Comma Placement` controls where commas go in table-aligned elements.  If set to `BeforePadding`, commas will be immediately next to the values to their left.  If set to `AfterPadding`, they will be after the padding, lined up with each other.  `BeforePaddingExceptNumbers` is also an option.
+
 ### 4.0.1
 
 * Fixed a [bug](https://github.com/j-brooke/FracturedJson/issues/32) where certain types of invalid JSON were removed rather than causing an error.

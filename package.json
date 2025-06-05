@@ -3,7 +3,7 @@
     "displayName": "FracturedJson",
     "description": "A JSON formatter that produces human-readable but fairly compact output.",
     "publisher": "j-brooke",
-    "version": "4.0.1",
+    "version": "4.1.0",
     "engines": {
         "vscode": "^1.57.0"
     },
@@ -87,17 +87,28 @@
                     "description": "Maximum complexity for inlined elements formatted as a table.",
                     "order": 23
                 },
+                "fracturedjsonvsc.v4.TableCommaPlacement": {
+                    "type": "string",
+                    "default": "BeforePadding",
+                    "description": "Controls whether commas are placed before padding (next to the element on the left) or after padding (lined up)",
+                    "enum": [
+                        "BeforePadding",
+                        "AfterPadding",
+                        "BeforePaddingExceptNumbers"
+                    ],
+                    "order": 24
+                },
                 "fracturedjsonvsc.v3.MinCompactArrayRowItems": {
                     "type": "number",
                     "default": 3,
                     "description": "Minimum number of items per line (roughly) when formatting compact multiline arrays.",
-                    "order": 24
+                    "order": 25
                 },
                 "fracturedjsonvsc.v3.AlwaysExpandDepth": {
                     "type": "number",
                     "default": -1,
                     "description": "Depth at which lists/objects are always expanded regardless of other settings. -1=none, 0=root, etc.",
-                    "order": 25
+                    "order": 26
                 },
                 "fracturedjsonvsc.v3.CommentPolicyForJSON": {
                     "type": "string",
@@ -225,7 +236,7 @@
         "@types/vscode": "^1.57.0",
         "@typescript-eslint/eslint-plugin": "^4.26.0",
         "@typescript-eslint/parser": "^4.26.0",
-        "esbuild": "^0.12.15",
+        "esbuild": "^0.25.5",
         "eslint": "^7.27.0",
         "glob": "^7.1.7",
         "mocha": "^10.1.0",
@@ -234,7 +245,7 @@
     },
     "dependencies": {
         "@vscode/vsce": "^2.19.0",
-        "fracturedjsonjs": "^4.0.1",
+        "fracturedjsonjs": "^4.1.0",
         "get-east-asian-width": "^1.2.0"
     }
 }

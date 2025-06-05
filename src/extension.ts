@@ -7,7 +7,7 @@
 //
 
 import * as vscode from 'vscode';
-import {CommentPolicy, Formatter, FracturedJsonError, NumberListAlignment} from 'fracturedjsonjs';
+import {CommentPolicy, Formatter, FracturedJsonError, NumberListAlignment, TableCommaPlacement} from 'fracturedjsonjs';
 let eastAsianStringWidth: (cp: number, obj:object) => number;
 
 /**
@@ -322,6 +322,26 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
     formatter.Options.MaxInlineComplexity = config.v3.MaxInlineComplexity;
     formatter.Options.MaxCompactArrayComplexity = config.v3.MaxCompactArrayComplexity;
     formatter.Options.MaxTableRowComplexity = config.v3.MaxTableRowComplexity;
+
+    switch (config.v4.TableCommaPlacement) {
+        case "BeforePadding": {
+            formatter.Options.TableCommaPlacement = TableCommaPlacement.BeforePadding;
+            break;
+        }
+        case "AfterPadding": {
+            formatter.Options.TableCommaPlacement = TableCommaPlacement.AfterPadding;
+            break;
+        }
+        case "BeforePaddingExceptNumbers": {
+            formatter.Options.TableCommaPlacement = TableCommaPlacement.BeforePaddingExceptNumbers;
+            break;
+        }
+        default: {
+            formatter.Options.TableCommaPlacement = TableCommaPlacement.BeforePadding;
+            break;
+        }
+    }
+
     formatter.Options.MinCompactArrayRowItems = config.v3.MinCompactArrayRowItems;
     formatter.Options.AlwaysExpandDepth = config.v3.AlwaysExpandDepth;
 
@@ -332,7 +352,6 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
     formatter.Options.CommentPadding = config.v3.CommentPadding;
     formatter.Options.OmitTrailingWhitespace = config.v3.OmitTrailingWhitespace;
 
-    formatter.Options.NumberListAlignment = config.v4.NumberListAlignment;
     switch (config.v4.NumberListAlignment) {
         case "Left": {
             formatter.Options.NumberListAlignment = NumberListAlignment.Left;
@@ -351,7 +370,6 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
             break;
         }
     }
-
 
     formatter.Options.PreserveBlankLines = config.v3.PreserveBlankLines;
     formatter.Options.AllowTrailingCommas = config.v3.AllowTrailingCommas;
