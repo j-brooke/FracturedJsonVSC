@@ -3,7 +3,7 @@
     "displayName": "FracturedJson",
     "description": "A JSON formatter that produces human-readable but fairly compact output.",
     "publisher": "j-brooke",
-    "version": "4.1.0",
+    "version": "4.1.1",
     "engines": {
         "vscode": "^1.57.0"
     },
@@ -245,7 +245,7 @@
     },
     "dependencies": {
         "@vscode/vsce": "^2.19.0",
-        "fracturedjsonjs": "^4.1.0",
+        "fracturedjsonjs": "^4.1.1",
         "get-east-asian-width": "^1.2.0"
     }
 }
