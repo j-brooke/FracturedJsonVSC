@@ -38,6 +38,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
     let eastAsianWidthMod = await import('get-east-asian-width');
     eastAsianStringWidth = eastAsianWidthMod.eastAsianWidth;
+
+    const config = vscode.workspace.getConfiguration('fracturedjsonvsc');
+    await migrateAllSettingsForV5(context, config);
 }
 
 /**
@@ -132,10 +135,10 @@ function nearMinifyJsonDocument(textEditor: vscode.TextEditor, edit: vscode.Text
     try {
         const oldText = textEditor.document.getText();
         const formatter = formatterWithOptions(textEditor.options, textEditor.document.languageId);
-        formatter.Options.MaxInlineLength = Number.MAX_VALUE;
         formatter.Options.MaxTotalLineLength = Number.MAX_VALUE;
         formatter.Options.MaxInlineComplexity = Number.MAX_VALUE;
         formatter.Options.MaxCompactArrayComplexity = -1;
+        formatter.Options.MaxPropNamePadding = -1;
         formatter.Options.MaxTableRowComplexity = -1;
         formatter.Options.AlwaysExpandDepth = 0;
         formatter.Options.IndentSpaces = 0;
@@ -317,13 +320,14 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
     // These settings come straight from our plugin's options.
     const config = vscode.workspace.getConfiguration('fracturedjsonvsc');
 
-    formatter.Options.MaxInlineLength = config.v3.MaxInlineLength;
-    formatter.Options.MaxTotalLineLength = config.v3.MaxTotalLineLength;
-    formatter.Options.MaxInlineComplexity = config.v3.MaxInlineComplexity;
-    formatter.Options.MaxCompactArrayComplexity = config.v3.MaxCompactArrayComplexity;
-    formatter.Options.MaxTableRowComplexity = config.v3.MaxTableRowComplexity;
+    formatter.Options.MaxTotalLineLength = config.MaxTotalLineLength;
+    formatter.Options.MaxInlineComplexity = config.MaxInlineComplexity;
+    formatter.Options.MaxCompactArrayComplexity = config.MaxCompactArrayComplexity;
+    formatter.Options.MaxTableRowComplexity = config.MaxTableRowComplexity;
+    formatter.Options.MaxPropNamePadding = config.MaxPropNamePadding;
+    formatter.Options.ColonBeforePropNamePadding = config.ColonBeforePropNamePadding;
 
-    switch (config.v4.TableCommaPlacement) {
+    switch (config.TableCommaPlacement) {
         case "BeforePadding": {
             formatter.Options.TableCommaPlacement = TableCommaPlacement.BeforePadding;
             break;
@@ -342,17 +346,16 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
         }
     }
 
-    formatter.Options.MinCompactArrayRowItems = config.v3.MinCompactArrayRowItems;
-    formatter.Options.AlwaysExpandDepth = config.v3.AlwaysExpandDepth;
+    formatter.Options.MinCompactArrayRowItems = config.MinCompactArrayRowItems;
+    formatter.Options.AlwaysExpandDepth = config.AlwaysExpandDepth;
 
-    formatter.Options.NestedBracketPadding = config.v3.NestedBracketPadding;
-    formatter.Options.SimpleBracketPadding = config.v3.SimpleBracketPadding;
-    formatter.Options.ColonPadding = config.v3.ColonPadding;
-    formatter.Options.CommaPadding = config.v3.CommaPadding;
-    formatter.Options.CommentPadding = config.v3.CommentPadding;
-    formatter.Options.OmitTrailingWhitespace = config.v3.OmitTrailingWhitespace;
+    formatter.Options.NestedBracketPadding = config.NestedBracketPadding;
+    formatter.Options.SimpleBracketPadding = config.SimpleBracketPadding;
+    formatter.Options.ColonPadding = config.ColonPadding;
+    formatter.Options.CommaPadding = config.CommaPadding;
+    formatter.Options.CommentPadding = config.CommentPadding;
 
-    switch (config.v4.NumberListAlignment) {
+    switch (config.NumberListAlignment) {
         case "Left": {
             formatter.Options.NumberListAlignment = NumberListAlignment.Left;
             break;
@@ -371,10 +374,10 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
         }
     }
 
-    formatter.Options.PreserveBlankLines = config.v3.PreserveBlankLines;
-    formatter.Options.AllowTrailingCommas = config.v3.AllowTrailingCommas;
+    formatter.Options.PreserveBlankLines = config.PreserveBlankLines;
+    formatter.Options.AllowTrailingCommas = config.AllowTrailingCommas;
 
-    switch (config.v3.StringWidthPolicy) {
+    switch (config.StringWidthPolicy) {
         case "CharacterCount": {
             formatter.StringLengthFunc = Formatter.StringLengthByCharCount;
             break;
@@ -390,7 +393,7 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
     }
 
     // We have two different CommentPolicy settings - one for JSON and one for JSONC.
-    const relevantCommentSetting = (langId==="json")? config.v3.CommentPolicyForJSON : config.v3.CommentPolicyForJSONC;
+    const relevantCommentSetting = (langId==="json")? config.CommentPolicyForJSON : config.CommentPolicyForJSONC;
     switch (relevantCommentSetting) {
         case "TreatAsError":
             formatter.Options.CommentPolicy = CommentPolicy.TreatAsError;
@@ -459,6 +462,58 @@ function processError(err: any): readonly [message:string, docOffset?: number] {
         }
     }
     return [messageToDisplay, docOffset];
+}
+
+/**
+ * Attempts to update existing settings to their version 5 names.
+ */
+async function migrateAllSettingsForV5(context: vscode.ExtensionContext, config:vscode.WorkspaceConfiguration) {
+    const MIGRATION_KEY = 'fracturedjsonvsc.settingsMigrationVersion';
+    const THIS_VERSION = 5;
+
+    const migratedVersion = context.globalState.get<number>(MIGRATION_KEY) ?? 0;
+    if (migratedVersion >= THIS_VERSION) {
+        return;
+    }
+
+    // For reasons I can't recall, I used version-scoped setting names for a while.  v3.xxx, etc.  There doesn't
+    // seem to be any benefit to that, so for version 5, I switched to flat-structured regular names.
+    // For each setting, we try to copy the old global, workspace, or workspaceFolder settings to their new names.
+    await migrateSetting(config, "v3.MaxTotalLineLength", "MaxTotalLineLength");
+    await migrateSetting(config, "v3.MaxInlineComplexity", "MaxInlineComplexity");
+    await migrateSetting(config, "v3.MaxCompactArrayComplexity", "MaxCompactArrayComplexity");
+    await migrateSetting(config, "v3.MaxTableRowComplexity", "MaxTableRowComplexity");
+    await migrateSetting(config, "v4.TableCommaPlacement", "TableCommaPlacement");
+    await migrateSetting(config, "v3.MinCompactArrayRowItems", "MinCompactArrayRowItems");
+    await migrateSetting(config, "v3.AlwaysExpandDepth", "AlwaysExpandDepth");
+    await migrateSetting(config, "v3.CommentPolicyForJSON", "CommentPolicyForJSON");
+    await migrateSetting(config, "v3.CommentPolicyForJSONC", "CommentPolicyForJSONC");
+    await migrateSetting(config, "v3.NestedBracketPadding", "NestedBracketPadding");
+    await migrateSetting(config, "v3.SimpleBracketPadding", "SimpleBracketPadding");
+    await migrateSetting(config, "v3.ColonPadding", "ColonPadding");
+    await migrateSetting(config, "v3.CommaPadding", "CommaPadding");
+    await migrateSetting(config, "v3.CommentPadding", "CommentPadding");
+    await migrateSetting(config, "v4.NumberListAlignment", "NumberListAlignment");
+    await migrateSetting(config, "v3.PreserveBlankLines", "PreserveBlankLines");
+    await migrateSetting(config, "v3.AllowTrailingCommas", "AllowTrailingCommas");
+    await migrateSetting(config, "v3.StringWidthPolicy", "StringWidthPolicy");
+
+    await context.globalState.update(MIGRATION_KEY, THIS_VERSION);
+}
+
+async function migrateSetting(config:vscode.WorkspaceConfiguration, oldKey:string, newKey:string) {
+    const oldInspect = config.inspect(oldKey);
+    const newInspect = config.inspect(newKey);
+
+    if (newInspect?.globalValue === undefined && oldInspect?.globalValue !== undefined) {
+        await config.update(newKey, oldInspect.globalValue, vscode.ConfigurationTarget.Global);
+    }
+    if (newInspect?.workspaceValue === undefined && oldInspect?.workspaceValue !== undefined) {
+        await config.update(newKey, oldInspect.workspaceValue, vscode.ConfigurationTarget.Workspace);
+    }
+    if (newInspect?.workspaceFolderValue === undefined && oldInspect?.workspaceFolderValue !== undefined) {
+        await config.update(newKey, oldInspect.workspaceFolderValue, vscode.ConfigurationTarget.WorkspaceFolder);
+    }
 }
 
 // Leading stuff that we can safely ignore

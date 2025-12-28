@@ -69,6 +69,38 @@ FracturedJson's **Format Selection** can only process selections that are either
 
 ## Release Notes
 
+## 5.0.0
+
+### Features
+
+Properties of expanded objects (ones that aren't inlined or table-formatted) are now aligned so that their values begin in the same column.  This makes for a more consistent look between table-formatted and expanded objects.  The new setting `MaxPropNamePadding` controls how much space FracturedJson is allowed to add, since it looks bad and wastes space if some property names are much longer than others.  (Set to `-1` to disable this feature.  Use `ColonBeforePropNamePadding` to put colons next to the property names instead of in a line of their own.)
+
+Example:
+```json
+{
+  "ModuleId"         : "armor",
+  "Name"             : "",
+  "FreeformLocations": [
+    [11,  2], [11,  3], [11,  4], [11,  5], [11,  6], [11,  7], [11,  8], [11,  9],
+    [11, 10], [11, 11], [11, 12], [11, 13], [11, 14], [ 1, 14], [ 1, 13], [ 1, 12],
+    [ 1, 11], [ 1, 10]
+  ],
+  "Orientation"      : "Fore",
+  "Seed"             : 272691529
+}
+```
+
+### Settings changes
+
+* New: `Max Prop Name Padding` - limits expanded property alignment when property names differ greatly in length.  (Doesn't apply to table formatting.)
+* New: `Colon Before Prop Name Padding` - controls where property name padding goes relative to the colon.
+* Removed: `Omit Trailing Whitespace` - Trailing whitespace is always removed now.
+* Removed: `Max Inline Length` - Stopped being useful once `Max Total Line Length` was introduced a few versions ago.
+* Default changed: `Max Compact Array Complexity` - now defaults to `2` instead of `1`.
+* Default changed: `Number List Alignment` - now defaults to `Decimal` instead of `Normalize`.  There are many cases where changing numbers' representations can alter how software treats them.  `Decimal` always preserves exactly how numbers were written in their source documents, so it's a safer default.
+* Default changed: `Table Comma Placement` - now defaults to `Before Padding Except Numbers` instead of `After Padding`.  It looks nicer when `Number List Alignment=Decimal`.
+
+
 ## 4.1.1
 
 Fixed a [bug](https://github.com/j-brooke/FracturedJson/issues/44) causing misaligned tables when a table column contains both nulls and very short non-empty arrays.

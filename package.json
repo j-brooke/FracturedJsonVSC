@@ -3,7 +3,7 @@
     "displayName": "FracturedJson",
     "description": "A JSON formatter that produces human-readable but fairly compact output.",
     "publisher": "j-brooke",
-    "version": "4.1.1",
+    "version": "5.0.0",
     "engines": {
         "vscode": "^1.57.0"
     },
@@ -57,60 +57,66 @@
         "configuration": {
             "title": "FracturedJson",
             "properties": {
-                "fracturedjsonvsc.v3.MaxInlineLength": {
+                "fracturedjsonvsc.MaxTotalLineLength": {
                     "type": "number",
-                    "default": 999999999,
-                    "description": "Maximum length of complex inline elements, not counting indentation.",
-                    "order": 11
-                },
-                "fracturedjsonvsc.v3.MaxTotalLineLength": {
-                    "type": "number",
-                    "default": 80,
+                    "default": 120,
                     "description": "Maximum length of complex inline elements, including indentation.",
                     "order": 12
                 },
-                "fracturedjsonvsc.v3.MaxInlineComplexity": {
+                "fracturedjsonvsc.MaxInlineComplexity": {
                     "type": "number",
                     "default": 2,
                     "description": "Maximum complexity for inline elements.",
                     "order": 21
                 },
-                "fracturedjsonvsc.v3.MaxCompactArrayComplexity": {
+                "fracturedjsonvsc.MaxCompactArrayComplexity": {
                     "type": "number",
-                    "default": 1,
+                    "default": 2,
                     "description": "Maximum complexity for compact multiline arrays.",
                     "order": 22
                 },
-                "fracturedjsonvsc.v3.MaxTableRowComplexity": {
+                "fracturedjsonvsc.MaxTableRowComplexity": {
                     "type": "number",
                     "default": 2,
                     "description": "Maximum complexity for inlined elements formatted as a table.",
                     "order": 23
                 },
-                "fracturedjsonvsc.v4.TableCommaPlacement": {
+                "fracturedjsonvsc.MaxPropNamePadding": {
+                    "type": "number",
+                    "default": 16,
+                    "description": "Maximum size difference for property names when aligning expanded properties.",
+                    "order": 24
+                },
+                "fracturedjsonvsc.TableCommaPlacement": {
                     "type": "string",
-                    "default": "BeforePadding",
+                    "default": "BeforePaddingExceptNumbers",
                     "description": "Controls whether commas are placed before padding (next to the element on the left) or after padding (lined up)",
                     "enum": [
                         "BeforePadding",
                         "AfterPadding",
                         "BeforePaddingExceptNumbers"
                     ],
-                    "order": 24
+                    "order": 25
                 },
-                "fracturedjsonvsc.v3.MinCompactArrayRowItems": {
+                "fracturedjsonvsc.MinCompactArrayRowItems": {
                     "type": "number",
                     "default": 3,
                     "description": "Minimum number of items per line (roughly) when formatting compact multiline arrays.",
-                    "order": 25
+                    "order": 26
                 },
-                "fracturedjsonvsc.v3.AlwaysExpandDepth": {
+                "fracturedjsonvsc.ColonBeforePropNamePadding": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If checked, put colons next to property names before extra spaces.",
+                    "order": 27
+                },
+                "fracturedjsonvsc.AlwaysExpandDepth": {
                     "type": "number",
                     "default": -1,
                     "description": "Depth at which lists/objects are always expanded regardless of other settings. -1=none, 0=root, etc.",
-                    "order": 26
+                    "order": 28
                 },
-                "fracturedjsonvsc.v3.CommentPolicyForJSON": {
+                "fracturedjsonvsc.CommentPolicyForJSON": {
                     "type": "string",
                     "default": "TreatAsError",
                     "description": "Determines how comments are handled in files identified by the editor as 'JSON' (not 'JSON with Comments').",
@@ -121,7 +127,7 @@
                     ],
                     "order": 31
                 },
-                "fracturedjsonvsc.v3.CommentPolicyForJSONC": {
+                "fracturedjsonvsc.CommentPolicyForJSONC": {
                     "type": "string",
                     "default": "Preserve",
                     "description": "Determines how comments are handled in files identified by the editor as 'JSON with Comments'.",
@@ -132,45 +138,39 @@
                     ],
                     "order": 32
                 },
-                "fracturedjsonvsc.v3.NestedBracketPadding": {
+                "fracturedjsonvsc.NestedBracketPadding": {
                     "type": "boolean",
                     "default": true,
                     "description": "Insert spaces inside brackets for complex inlined types.",
                     "order": 41
                 },
-                "fracturedjsonvsc.v3.SimpleBracketPadding": {
+                "fracturedjsonvsc.SimpleBracketPadding": {
                     "type": "boolean",
                     "default": false,
                     "description": "Insert spaces inside brackets for un-nested inlined types.",
                     "order": 42
                 },
-                "fracturedjsonvsc.v3.ColonPadding": {
+                "fracturedjsonvsc.ColonPadding": {
                     "type": "boolean",
                     "default": true,
                     "description": "Insert spaces after colons.",
                     "order": 43
                 },
-                "fracturedjsonvsc.v3.CommaPadding": {
+                "fracturedjsonvsc.CommaPadding": {
                     "type": "boolean",
                     "default": true,
                     "description": "Insert spaces after commas.",
                     "order": 44
                 },
-                "fracturedjsonvsc.v3.CommentPadding": {
+                "fracturedjsonvsc.CommentPadding": {
                     "type": "boolean",
                     "default": true,
                     "description": "Insert spaces before/after comments (depending on their position).",
                     "order": 45
                 },
-                "fracturedjsonvsc.v3.OmitTrailingWhitespace": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Trims spaces/tabs at the ends of lines.",
-                    "order": 46
-                },
-                "fracturedjsonvsc.v4.NumberListAlignment": {
+                "fracturedjsonvsc.NumberListAlignment": {
                     "type": "string",
-                    "default": "Normalize",
+                    "default": "Decimal",
                     "description": "Controls how lists or columns of numbers (possibly with nulls) are aligned, and whether their precision may be normalized.",
                     "enum": [
                         "Left",
@@ -186,19 +186,19 @@
                     ],
                     "order": 51
                 },
-                "fracturedjsonvsc.v3.PreserveBlankLines": {
+                "fracturedjsonvsc.PreserveBlankLines": {
                     "type": "boolean",
                     "default": false,
                     "description": "If true, blank lines from the original will be included in the formatted text.",
                     "order": 52
                 },
-                "fracturedjsonvsc.v3.AllowTrailingCommas": {
+                "fracturedjsonvsc.AllowTrailingCommas": {
                     "type": "boolean",
                     "default": false,
                     "description": "If true, commas at then ends of arrays/objects won't be treated as errors.",
                     "order": 53
                 },
-                "fracturedjsonvsc.v3.StringWidthPolicy": {
+                "fracturedjsonvsc.StringWidthPolicy": {
                     "type": "string",
                     "default": "EastAsianFullWidth",
                     "description": "Determines how many spaces are added when aligning things as tables.",
@@ -245,7 +245,7 @@
     },
     "dependencies": {
         "@vscode/vsce": "^2.19.0",
-        "fracturedjsonjs": "^4.1.1",
+        "fracturedjsonjs": "^5.0.0",
         "get-east-asian-width": "^1.2.0"
     }
 }
