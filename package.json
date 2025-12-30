@@ -245,7 +245,7 @@
     },
     "dependencies": {
         "@vscode/vsce": "^2.19.0",
-        "fracturedjsonjs": "^5.0.0",
+        "fracturedjsonjs": "^5.0.1",
         "get-east-asian-width": "^1.2.0"
     }
 }
