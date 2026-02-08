@@ -9,7 +9,7 @@ A JSON and JSONC formatter that produces human-readable but fairly compact outpu
 
 There are lots of settings available to control the output, but for the most part you can ignore them. FracturedJson produces nice-looking output from any set of JSON data automatically.  If comments are present, FracturedJson is smart about keeping them with the elements to which the refer when things are moved around.
 
-This VSCode extension is part of a family of FracturedJson tools.  Check out the [browser-based formatter](https://j-brooke.github.io/FracturedJson/) to see related projects and to try out the various formatting options.
+This VSCode extension is part of a family of FracturedJson tools.  See the [Project Wiki](https://github.com/j-brooke/FracturedJson/wiki) for more information.
 
 
 ---
@@ -64,6 +64,10 @@ Examples of all of the settings can be found on the [Options wiki page](https://
 ### Format Selection Doesn't Always Work
 
 FracturedJson's **Format Selection** can only process selections that are either complete JSON elements by themselves (possibly with comments before or after), or groups of complete JSON elements that would be valid if surrounded by array or object brackets.  If won't work if your selection contains imbalanced opening and closing brackets, for instance.
+
+---
+
+[Project Wiki](https://github.com/j-brooke/FracturedJson/wiki) — [Formatting Options](https://github.com/j-brooke/FracturedJson/wiki/Options) — [Web Formatter](https://j-brooke.github.io/FracturedJson/) — [Implementations & Ports](https://github.com/j-brooke/FracturedJson/wiki/Available-Versions-and-Ports)
 
 ---
 
