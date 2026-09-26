@@ -1,7 +1,13 @@
 {
     "name": "fracturedjsonvsc",
+
     "displayName": "FracturedJson",
-    "description": "A JSON formatter that produces human-readable but fairly compact output.",
+    "description": "JSON/JSONC formatter that stays compact: similar objects align like a table, short values stay inline.",
+    "keywords": [
+        "json", "jsonc", "formatter", "pretty-print", "prettyprint", "beautify",
+        "json-formatter", "compact", "readable", "table", "alignment",
+        "comments", "vscode"
+    ],
     "publisher": "j-brooke",
     "version": "5.0.1",
     "engines": {
@@ -9,16 +15,6 @@
     },
     "categories": [
         "Formatters"
-    ],
-    "keywords": [
-        "JSON",
-        "JSONC",
-        "formatter",
-        "pretty printer",
-        "beautifier",
-        "stringify",
-        "compact",
-        "comments"
     ],
     "repository": {
         "url": "https://github.com/j-brooke/FracturedJsonVSC"

@@ -11,7 +11,6 @@ There are lots of settings available to control the output, but for the most par
 
 This VSCode extension is part of a family of FracturedJson tools.  See the [Project Wiki](https://github.com/j-brooke/FracturedJson/wiki) for more information.
 
-
 ---
 
 ## Features
