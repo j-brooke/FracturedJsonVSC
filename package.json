@@ -1,15 +1,24 @@
 {
     "name": "fracturedjsonvsc",
-
     "displayName": "FracturedJson",
     "description": "JSON/JSONC formatter that stays compact: similar objects align like a table, short values stay inline.",
     "keywords": [
-        "json", "jsonc", "formatter", "pretty-print", "prettyprint", "beautify",
-        "json-formatter", "compact", "readable", "table", "alignment",
-        "comments", "vscode"
+        "json",
+        "jsonc",
+        "formatter",
+        "pretty-print",
+        "prettyprint",
+        "beautify",
+        "json-formatter",
+        "compact",
+        "readable",
+        "table",
+        "alignment",
+        "comments",
+        "vscode"
     ],
     "publisher": "j-brooke",
-    "version": "5.0.1",
+    "version": "5.1.0",
     "engines": {
         "vscode": "^1.57.0"
     },
@@ -94,23 +103,41 @@
                     ],
                     "order": 25
                 },
+                "fracturedjsonvsc.AllowTableSegments": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Allow sections of containers to be formatted as tables independently.",
+                    "order": 26
+                },
+                "fracturedjsonvsc.SplitTableSegmentsAtBlankLines": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Blank lines force separate table formatting.",
+                    "order": 27
+                },
+                "fracturedjsonvsc.SplitTableSegmentsAtComments": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Standalone comments force separate table formatting.",
+                    "order": 28
+                },
                 "fracturedjsonvsc.MinCompactArrayRowItems": {
                     "type": "number",
                     "default": 3,
                     "description": "Minimum number of items per line (roughly) when formatting compact multiline arrays.",
-                    "order": 26
+                    "order": 29
                 },
                 "fracturedjsonvsc.ColonBeforePropNamePadding": {
                     "type": "boolean",
                     "default": false,
                     "description": "If checked, put colons next to property names before extra spaces.",
-                    "order": 27
+                    "order": 30
                 },
                 "fracturedjsonvsc.AlwaysExpandDepth": {
                     "type": "number",
                     "default": -1,
                     "description": "Depth at which lists/objects are always expanded regardless of other settings. -1=none, 0=root, etc.",
-                    "order": 28
+                    "order": 31
                 },
                 "fracturedjsonvsc.CommentPolicyForJSON": {
                     "type": "string",
@@ -121,7 +148,7 @@
                         "Remove",
                         "Preserve"
                     ],
-                    "order": 31
+                    "order": 32
                 },
                 "fracturedjsonvsc.CommentPolicyForJSONC": {
                     "type": "string",
@@ -132,7 +159,7 @@
                         "Remove",
                         "Preserve"
                     ],
-                    "order": 32
+                    "order": 33
                 },
                 "fracturedjsonvsc.NestedBracketPadding": {
                     "type": "boolean",
@@ -146,23 +173,35 @@
                     "description": "Insert spaces inside brackets for un-nested inlined types.",
                     "order": 42
                 },
+                "fracturedjsonvsc.CollapseOpeningBrackets": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Opening brackets don't require their own lines.",
+                    "order": 43
+                },
+                "fracturedjsonvsc.CollapseClosingBrackets": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Closing brackets don't require their own lines.",
+                    "order": 44
+                },
                 "fracturedjsonvsc.ColonPadding": {
                     "type": "boolean",
                     "default": true,
                     "description": "Insert spaces after colons.",
-                    "order": 43
+                    "order": 45
                 },
                 "fracturedjsonvsc.CommaPadding": {
                     "type": "boolean",
                     "default": true,
                     "description": "Insert spaces after commas.",
-                    "order": 44
+                    "order": 46
                 },
                 "fracturedjsonvsc.CommentPadding": {
                     "type": "boolean",
                     "default": true,
                     "description": "Insert spaces before/after comments (depending on their position).",
-                    "order": 45
+                    "order": 47
                 },
                 "fracturedjsonvsc.NumberListAlignment": {
                     "type": "string",
@@ -233,7 +272,7 @@
         "typescript": "^4.3.2"
     },
     "dependencies": {
-        "fracturedjsonjs": "^5.0.2",
+        "fracturedjsonjs": "^5.1.0",
         "get-east-asian-width": "^1.2.0"
     }
 }

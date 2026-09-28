@@ -346,11 +346,16 @@ function formatterWithOptions(options: vscode.TextEditorOptions, langId: string)
         }
     }
 
+    formatter.Options.AllowTableSegments = config.AllowTableSegments;
+    formatter.Options.SplitTableSegmentsAtBlankLines = config.SplitTableSegmentsAtBlankLines;
+    formatter.Options.SplitTableSegmentsAtComments = config.SplitTableSegmentsAtComments;
     formatter.Options.MinCompactArrayRowItems = config.MinCompactArrayRowItems;
     formatter.Options.AlwaysExpandDepth = config.AlwaysExpandDepth;
 
     formatter.Options.NestedBracketPadding = config.NestedBracketPadding;
     formatter.Options.SimpleBracketPadding = config.SimpleBracketPadding;
+    formatter.Options.CollapseOpeningBrackets = config.CollapseOpeningBrackets;
+    formatter.Options.CollapseClosingBrackets = config.CollapseClosingBrackets;
     formatter.Options.ColonPadding = config.ColonPadding;
     formatter.Options.CommaPadding = config.CommaPadding;
     formatter.Options.CommentPadding = config.CommentPadding;

@@ -72,6 +72,16 @@ FracturedJson's **Format Selection** can only process selections that are either
 
 ## Release Notes
 
+## 5.1.0
+
+### Features
+
+Table formatting can now apply to just parts of a container instead of all of its children if `AllowTableSegments` is set to `true`.  If one item is too long for inlining, for instance, the items above it and below it can still be table-formatted separately.  If `SplitTableSegmentsAtBlankLines` or `SplitTableSegmentsAtComments` are also set, blank lines or comments force the sections above and below to be treated as separate tables (if at all).
+
+Brackets for expanded arrays/objects don't require their own lines if `CollapseOpeningBrackets` or `CollapseClosingBrackets` are set to `true`.  Opening brackets will only be collapsed if there's enough room for them to start at their expected indent levels, and only when not using tabs to indent.  Closing brackets require that the end of the container isn't a comment.  They respect `MaxTotalLineLength`.
+
+All five settings default to false.  However, `AllowTableSegments` is `true` in `FracturedJsonOptions.Recommended()`.
+
 ## 5.0.1
 
 * Fixed a [bug](https://github.com/j-brooke/FracturedJson/issues/64) where a blank line after a line comment would be written before the comment line rather than after.
@@ -107,7 +117,6 @@ Example:
 * Default changed: `Number List Alignment` - now defaults to `Decimal` instead of `Normalize`.  There are many cases where changing numbers' representations can alter how software treats them.  `Decimal` always preserves exactly how numbers were written in their source documents, so it's a safer default.
 * Default changed: `Table Comma Placement` - now defaults to `Before Padding Except Numbers` instead of `After Padding`.  It looks nicer when `Number List Alignment=Decimal`.
 
-
 ## 4.1.1
 
 Fixed a [bug](https://github.com/j-brooke/FracturedJson/issues/44) causing misaligned tables when a table column contains both nulls and very short non-empty arrays.
@@ -124,11 +133,9 @@ New setting `Table Comma Placement` controls where commas go in table-aligned el
 
 Replaced setting `Don't Justify Numbers` with a new one, `Number List Alignment`, to control how arrays or table columns of numbers are handled.  Use `Normalize` if you want columns of numbers to be re-written with the same number of digits after the decimal point.  Use `Left` or `Right` if you want the numbers preserved exactly as they are in the original document, but lined up to one side or the other.  Use `Decimal` if you want the numbers preserved but lined up according to their decimal points.
 
-
 ### 3.1.2
 
 * Fixed a [bug](https://github.com/j-brooke/FracturedJson/issues/27) where numbers that overflow or underflow a 64-bit float could (depending on settings) be written to the output as `Infinity` or `0`.  In the overflow case, that caused output to be invalid JSON.  With this fix, FracturedJson recognizes that it can't safely reformat numbers like this, and uses the exact number representation from the original document.
-
 
 ### 3.1.1
 
@@ -140,11 +147,9 @@ In case anyone was relying on the old behavior, I've introduced a new option - `
 
 The third option is just like before: `Character Count` treats each UTF-16 character as having the same width.
 
-
 ### 3.1.0
 
 New setting: `Omit Trailing Whitespace`.  Defaults to `true`.  When checked, there will never be spaces or tabs at the end of lines of formatted code.
-
 
 ### 3.0.0
 
@@ -158,11 +163,9 @@ New setting: `Omit Trailing Whitespace`.  Defaults to `true`.  When checked, the
 
 **Settings reset:**  Many of the settings have changed.  Old settings from version 2 will be wiped out.
 
-
 ### 2.2.2
 
 Updated `npm` packages to address security concern.
-
 
 ### 2.2.1
 
@@ -170,7 +173,6 @@ Updated `npm` packages to address security concern.
     * Option `EastAsianFullWidth` (default) uses two spaces for East Asian "fullwidth" symbols, and one space for others.
     * Option `CharacterCount` treats each character as having the width of one space.
 * New setting `Simple Bracket Padding` controls whether brackets should have spaces inside when they contain only simple elements.  (The old setting `Nested Bracket Padding` is used when they contain other arrays/objects.)
-
 
 ### 2.1.0
 
